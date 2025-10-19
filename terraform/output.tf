@@ -5,6 +5,7 @@ output "info_servers-web" {
       name = i.name
       id   = i.id
       fqdn = i.fqdn
+      ip   = i.network_interface.0.nat_ip_address
     }
   ]
   description = "info"
@@ -28,5 +29,6 @@ output "info_server_storage" {
     name = yandex_compute_instance.storage.name
     id   = yandex_compute_instance.storage.id
     fqdn = yandex_compute_instance.storage.fqdn
+    ip   = i.network_interface.0.nat_ip_address
   }
 }

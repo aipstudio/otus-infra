@@ -1,0 +1,9 @@
+[targets]
+%{ for i,target in targets ~}
+${target.name} ansible_host=${target.network_interface.0.nat_ip_address}
+%{ endfor ~}
+
+[iniciators]
+%{ for i,initiator in initiators ~}
+${initiator.name} ansible_host=${initiator.network_interface.0.nat_ip_address}
+%{ endfor ~}

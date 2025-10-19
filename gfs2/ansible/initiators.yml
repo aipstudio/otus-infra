@@ -1,0 +1,9 @@
+- hosts: targets
+  remote_user: debian
+  become: true
+  tasks:
+    - name: install open-iscsi
+      apt:
+        name: [ 'open-iscsi' ]
+        update_cache: yes
+        state: latest
