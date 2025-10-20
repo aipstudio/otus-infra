@@ -1,0 +1,51 @@
+- hosts: initiators
+  remote_user: debian
+  become: true
+  vars:
+    hacluster_password: "2yd4ap5F4fdLxvETFBmLMepvMjTatx"
+    hacluster_password_hash: "$6$ONz2snxWlrGte./u$q0NmMJ4x2o2E5ItbVhIcfnQaqwbvWrDzE1dKdme686yrJVv8RGVRMmd9cX6oW9Kvxv.MKP7XZGqyC5ALAK6sc."
+  tasks:
+    - name: install packets
+      apt:
+        name: [ 'gfs2-utils', 'lvm2', 'pcs' ]
+        update_cache: yes
+        state: latest
+
+    - name: set password for hacluster
+      user:
+        name: hacluster
+        password: "{{ hacluster_password_hash }}"
+
+    - name: destroy cluster pacemaker/corosync
+      shell: pcs cluster destroy --force
+
+    - name: edit hosts
+      blockinfile:
+        path: /etc/hosts
+        marker: "# {mark} ANSIBLE MANAGED BLOCK HOSTS"
+        block: "{{ item }}"
+      loop:
+        - "{{lookup('ansible.builtin.template', 'hosts') }}"
+
+    - name: create cluster pcs
+      shell: |
+        #pcs host auth initiator-1 initiator-2 -u hacluster -p "{{ hacluster_password }}"
+        pcs host auth {% for host in vars['play_hosts'] %}{{ hostvars[host].inventory_hostname }} addr={{ hostvars[host]['ansible_default_ipv4']['address'] }} {% endfor %} -u hacluster -p "{{ hacluster_password }}"
+        pcs cluster setup gfs2 initiator-1 initiator-2 --force
+        pcs cluster start --all
+        pcs property set stonith-enabled=false
+        pcs property set no-quorum-policy=freeze
+        pcs resource create dlm systemd:dlm op monitor interval=30s on-fail=ignore clone interleave=true ordered=true
+        pcs resource create clvmd ocf:heartbeat:clvm op monitor interval=30s on-fail=ignore clone interleave=true ordered=true
+        pcs constraint order start dlm-clone then clvmd-clone
+      run_once: true
+
+    - name: show info get
+      shell:  pcs status resources
+      register: info
+      run_once: true
+
+    - name: show info
+      debug:
+        msg: "{{ info.stdout_lines }}"
+      run_once: true

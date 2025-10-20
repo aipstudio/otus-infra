@@ -17,7 +17,6 @@ resource "yandex_compute_instance" "targets" {
         disk_id = secondary_disk.value
       }
   }
-
   scheduling_policy {
     preemptible = true
   }
