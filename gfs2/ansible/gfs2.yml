@@ -2,8 +2,8 @@
   remote_user: debian
   become: true
   vars:
-    hacluster_password: "2yd4ap5F4fdLxvETFBmLMepvMjTatx"
-    hacluster_password_hash: "$6$ONz2snxWlrGte./u$q0NmMJ4x2o2E5ItbVhIcfnQaqwbvWrDzE1dKdme686yrJVv8RGVRMmd9cX6oW9Kvxv.MKP7XZGqyC5ALAK6sc."
+    #hacluster_password: "{{ lookup('env', 'HACLUSTER_PASSWORD') }}"
+    hacluster_password: "{{ lookup('ansible.builtin.password', '/dev/null', length=20, chars=['ascii_letters', 'digits']) }}"
   tasks:
     - name: install packets
       apt:
@@ -14,7 +14,7 @@
     - name: set password for hacluster
       user:
         name: hacluster
-        password: "{{ hacluster_password_hash }}"
+        password: "{{ hacluster_password | password_hash('sha512') }}"
 
     - name: destroy cluster pacemaker/corosync
       shell: pcs cluster destroy --force
