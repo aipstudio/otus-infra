@@ -1,4 +1,4 @@
-- hosts: targets
+- hosts: initiators
   remote_user: debian
   become: true
   tasks:
@@ -7,3 +7,33 @@
         name: [ 'open-iscsi' ]
         update_cache: yes
         state: latest
+
+    - name: copy config
+      template:
+        src: "{{ item }}"
+        dest: "/etc/iscsi/{{ item }}"
+      loop:
+        - iscsid.conf
+        - initiatorname.iscsi
+      notify:
+        - restart iscsi
+
+    - name: connect to target
+      shell: |
+        iscsiadm -m node -u -T iqn.2222-12.ru.otus:storage.target00
+        iscsiadm -m discovery -t st -p {{ target_local_ip }}
+        iscsiadm -m node -l -T iqn.2222-12.ru.otus:storage.target00
+
+    - name: show info get
+      shell: iscsiadm -m session -P3
+      register: info
+
+    - name: show info
+      debug:
+        msg: "{{ info.stdout_lines }}"
+
+  handlers:
+    - name: restart iscsi
+      systemd:
+        name: iscsi
+        state: restarted

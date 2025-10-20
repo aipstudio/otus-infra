@@ -1,5 +1,9 @@
 [targets]
-target ansible_host=46.21.246.52
+target ansible_host=158.160.123.207 local_ip=10.0.1.26
 
-[iniciators]
-initiator-1 ansible_host=158.160.41.78
+[initiators]
+initiator-1 ansible_host=158.160.124.9 local_ip=10.0.1.5
+initiator-2 ansible_host=84.252.129.105 local_ip=10.0.1.23
+
+[initiators:vars]
+target_local_ip=10.0.1.26

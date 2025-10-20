@@ -1,7 +1,7 @@
 resource "yandex_compute_instance" "initiators" {
   name        = "initiator-${count.index + 1}"
   platform_id = "standard-v1"
-  count       = 1
+  count       = 2
   resources {
     cores         = 2
     memory        = 1
