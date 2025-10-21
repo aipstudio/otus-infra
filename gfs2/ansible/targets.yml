@@ -1,24 +1,34 @@
 - hosts: targets
   remote_user: debian
   become: true
+  vars:
+    target_name: "iqn.2222-12.ru.otus:storage.target00"
   tasks:
+    - name: install targetcli
+      yum:
+        name: [ 'targetcli' ]
+        update_cache: yes
+        state: latest
+      when: ansible_distribution == 'CentOS'
+
     - name: install targetcli-fb
       apt:
         name: [ 'targetcli-fb' ]
         update_cache: yes
         state: latest
+      when: ansible_distribution == 'Debian'
 
     - name: Create iSCSI target and LUN
       shell: |
         targetcli /backstores/block create disk01 /dev/vdb
-        targetcli /iscsi create iqn.2222-12.ru.otus:storage.target00
-        targetcli /iscsi/iqn.2222-12.ru.otus:storage.target00/tpg1/portals create 0.0.0.0
-        targetcli /iscsi/iqn.2222-12.ru.otus:storage.target00/tpg1/luns create /backstores/block/disk01 lun=1
-        targetcli /iscsi/iqn.2222-12.ru.otus:storage.target00/tpg1/luns ls lun1
-        #targetcli /iscsi/iqn.2222-12.ru.otus:storage.target00/tpg1 set attribute authentication=0
-        #targetcli /iscsi/iqn.2222-12.ru.otus:storage.target00/tpg1 set auth userid=otus
-        #targetcli /iscsi/iqn.2222-12.ru.otus:storage.target00/tpg1 set auth password=otus
-        targetcli /iscsi/iqn.2222-12.ru.otus:storage.target00/tpg1/acls create iqn.2222-12.ru.otus:initiator-1
-        targetcli /iscsi/iqn.2222-12.ru.otus:storage.target00/tpg1/acls create iqn.2222-12.ru.otus:initiator-2
-        targetcli /iscsi/iqn.2222-12.ru.otus:storage.target00/tpg1/acls create iqn.2222-12.ru.otus:initiator-3
+        targetcli /iscsi create {{ target_name }}
+        targetcli /iscsi/{{ target_name }}/tpg1/portals create 0.0.0.0
+        targetcli /iscsi/{{ target_name }}/tpg1/luns create /backstores/block/disk01 lun=1
+        targetcli /iscsi/{{ target_name }}/tpg1/luns ls lun1
+        #targetcli /iscsi/{{ target_name }}/tpg1 set attribute authentication=0
+        #targetcli /iscsi/{{ target_name }}/tpg1 set auth userid=otus
+        #targetcli /iscsi/{{ target_name }}/tpg1 set auth password=otus
+        targetcli /iscsi/{{ target_name }}/tpg1/acls create iqn.2222-12.ru.otus:initiator-1
+        targetcli /iscsi/{{ target_name }}/tpg1/acls create iqn.2222-12.ru.otus:initiator-2
+        targetcli /iscsi/{{ target_name }}/tpg1/acls create iqn.2222-12.ru.otus:initiator-3
         targetcli saveconfig

@@ -1,0 +1,32 @@
+- hosts: initiators
+  remote_user: centos
+  become: true
+  tasks:
+    - name: install multipath
+      yum:
+        name: [ 'device-mapper-multipath', 'iscsi-initiator-utils' ]
+        update_cache: yes
+        state: latest
+      when: ansible_distribution == 'CentOS'
+
+    - name:  install multipath
+      apt:
+        name: [ '???' ]
+        update_cache: yes
+        state: latest
+      when: ansible_distribution == 'Debian111'
+
+    - name: copy config
+      template:
+        src: "{{ item }}"
+        dest: "/etc/{{ item }}"
+      loop:
+        - multipath.conf
+      notify:
+        - restart multipathd
+
+  handlers:
+    - name: restart multipathd
+      systemd:
+        name: multipathd
+        state: restarted

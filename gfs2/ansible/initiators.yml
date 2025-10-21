@@ -1,12 +1,22 @@
 - hosts: initiators
-  remote_user: debian
+  remote_user: centos
   become: true
+  vars:
+    target_name: "iqn.2222-12.ru.otus:storage.target00"
   tasks:
     - name: install open-iscsi
+      yum:
+        name: [ 'iscsi-initiator-utils' ]
+        update_cache: yes
+        state: latest
+      when: ansible_distribution == 'CentOS'
+
+    - name:  install open-iscsi
       apt:
         name: [ 'open-iscsi' ]
         update_cache: yes
         state: latest
+      when: ansible_distribution == 'Debian'
 
     - name: copy config
       template:
@@ -20,9 +30,10 @@
 
     - name: connect to target
       shell: |
-        iscsiadm -m node -u -T iqn.2222-12.ru.otus:storage.target00
+        iscsiadm -m node -u -T {{ target_name }}
         iscsiadm -m discovery -t st -p {{ target_local_ip }}
-        iscsiadm -m node -l -T iqn.2222-12.ru.otus:storage.target00
+        iscsiadm -m node -l -T {{ target_name }}
+        iscsiadm -m node -L automatic
 
     - name: show info get
       shell: iscsiadm -m session -P3

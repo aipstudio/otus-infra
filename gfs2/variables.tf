@@ -4,6 +4,12 @@ variable "debian" {
   description = "debian_name"
 }
 
+variable "centos" {
+  type        = string
+  default     = "centos-7"
+  description = "centos_name"
+}
+
 ###cloud vars
 variable "token" {
   type        = string

@@ -9,7 +9,7 @@ resource "yandex_compute_instance" "initiators" {
   }
   boot_disk {
     initialize_params {
-      image_id = data.yandex_compute_image.debian.image_id
+      image_id = data.yandex_compute_image.centos.image_id
     }
   }
   scheduling_policy {
@@ -21,6 +21,6 @@ resource "yandex_compute_instance" "initiators" {
   }
   metadata = {
     serial-port-enable = local.serial-port
-    ssh-keys           = "debian:${local.ssh-pub}"
+    ssh-keys           = "centos:${local.ssh-pub}"
   }
 }

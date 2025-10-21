@@ -32,7 +32,7 @@ resource "null_resource" "ansible_provisioning_initiators" {
     inline = ["sleep 1"]
     connection {
       type        = "ssh"
-      user        = "debian"
+      user        = "centos"
       host        = resource.yandex_compute_instance.initiators[count.index].network_interface.0.nat_ip_address
       private_key = "${file(var.ssh_root_key.ssh-key)}"
     }
