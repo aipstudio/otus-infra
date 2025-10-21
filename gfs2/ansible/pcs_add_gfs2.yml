@@ -1,0 +1,21 @@
+- hosts: initiators
+  remote_user: centos
+  become: true
+  tasks:
+    - name: cluster configure GFS2 - /mnt/gfs2
+      shell: |
+        pcs resource create clusterfs Filesystem device="/dev/mapper/cluster_vg-cluster_lv" directory="/mnt/gfs2" fstype="gfs2" "options=noatime" op monitor interval=10s on-fail=ignore clone interleave=true
+        pcs constraint order start clvmd-clone then clusterfs-clone
+        pcs constraint colocation add clusterfs-clone with clvmd-clone
+        pcs status
+      run_once: true
+
+    - name: show info get
+      shell: sleep 10 && pcs status
+      register: info
+      run_once: true
+
+    - name: show info
+      debug:
+        msg: "{{ info.stdout_lines }}"
+      run_once: true

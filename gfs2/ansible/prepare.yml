@@ -1,0 +1,10 @@
+- hosts: initiators
+  remote_user: centos
+  become: true
+  tasks:
+    - name: install packets
+      yum:
+        name: [ 'gfs2-utils', 'lvm2-cluster', 'pcs', 'dlm', 'iscsi-initiator-utils', 'device-mapper-multipath', 'iscsi-initiator-utils' ]
+        update_cache: yes
+        state: latest
+      when: ansible_distribution == 'CentOS'

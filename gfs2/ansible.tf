@@ -26,7 +26,7 @@ resource "null_resource" "ansible_provisioning_targets" {
 }
 
 resource "null_resource" "ansible_provisioning_initiators" {
-  depends_on = [resource.yandex_compute_instance.initiators,resource.local_file.hosts]
+  depends_on = [resource.yandex_compute_instance.initiators,resource.local_file.hosts,null_resource.ansible_provisioning_targets]
   count = 1
   provisioner "remote-exec" {
     inline = ["sleep 1"]
@@ -38,7 +38,12 @@ resource "null_resource" "ansible_provisioning_initiators" {
     }
   }
   provisioner "local-exec" {
-    command     = "ansible-playbook -i hosts ansible/initiators.yml"
+    command     = "ansible/run.sh"
+    working_dir = path.module
+    interpreter = ["bash", "-c"]
+  }
+  provisioner "local-exec" {
+    command     = "ansible-playbook -i hosts ansible/pcs_test.yml"
     working_dir = path.module
     interpreter = ["bash", "-c"]
   }

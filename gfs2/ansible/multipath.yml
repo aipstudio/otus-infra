@@ -1,6 +1,8 @@
 - hosts: initiators
   remote_user: centos
   become: true
+  vars:
+    disk_dev: /dev/sda
   tasks:
     - name: install multipath
       yum:
@@ -23,10 +25,26 @@
       loop:
         - multipath.conf
       notify:
-        - restart multipathd
+        - reload multipathd
+
+    - name: start multipathd
+      systemd:
+        name: multipathd
+        state: started
+
+    - name: add disk to multipath
+      shell: |
+        multipath -W
+        multipath -a {{ disk_dev }}
+        multipath -r
 
   handlers:
     - name: restart multipathd
       systemd:
         name: multipathd
         state: restarted
+
+    - name: reload multipathd
+      systemd:
+        name: multipathd
+        state: reloaded

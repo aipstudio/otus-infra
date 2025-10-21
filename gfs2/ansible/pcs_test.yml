@@ -1,0 +1,23 @@
+- hosts: initiators
+  remote_user: centos
+  become: true
+  tasks:
+    - name: check mount
+      shell: mountpoint /mnt/gfs2 || echo "Error"
+      register: mount
+
+    - name: error
+      fail:
+        msg: "mointpoint /mnt/gfs2 - fail"
+      when:  mount.stdout | regex_search('Error')
+
+    - name: create file
+      shell: |
+        touch /mnt/gfs2/{{ inventory_hostname }}
+        ls -la /mnt/gfs2
+      register: touch
+
+    - name: show files
+      debug:
+        msg: "{{ touch.stdout_lines }}"
+

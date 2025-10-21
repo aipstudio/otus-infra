@@ -1,0 +1,47 @@
+- hosts: initiators
+  remote_user: centos
+  become: true
+  vars:
+    disk_dev_mp: /dev/mapper/mpatha
+  tasks:
+    - name: install lvm2-cluster
+      yum:
+        name: [ 'gfs2-utils', 'lvm2-cluster' ]
+        update_cache: yes
+        state: latest
+      when: ansible_distribution == 'CentOS'
+
+#    - name: fix use_lvmetad
+#      lineinfile:
+#        path: /etc/lvm/lvm.conf
+#        regexp: '.*use_lvmetad = .*'
+#        line: '        use_lvmetad = 1'
+
+    - name: lvm configure
+      shell: lvmconf --enable-cluster
+
+    - name: LVM create pv
+      shell: pvcreate "{{ disk_dev_mp }}"
+      ignore_errors: true
+
+    - name: LVM create vg
+      lvg:
+        vg: cluster_vg
+        vg_options: -cy
+        pvs:
+          - "{{ disk_dev_mp }}"
+        state: present
+      run_once: true
+
+    - name: LVM create lv
+      lvol:
+        lv: cluster_lv
+        vg: cluster_vg
+        size: 900M
+        state: present
+      run_once: true
+
+    - name: create gfs2
+      shell: mkfs.gfs2 -O -j2 -p lock_dlm -t gfs2:gfs2 /dev/mapper/cluster_vg-cluster_lv
+      run_once: true
+      ignore_errors: true

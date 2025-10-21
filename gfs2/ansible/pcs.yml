@@ -4,14 +4,14 @@
   tasks:
     - name: install packets
       yum:
-        name: [ 'gfs2-utils', 'lvm2-cluster', 'pcs', 'dlm' ]
+        name: [ 'pcs', 'dlm', 'lvm2-cluster' ]
         update_cache: yes
         state: latest
       when: ansible_distribution == 'CentOS'
 
     - name: install packets
       apt:
-        name: [ 'gfs2-utils', 'lvm2', 'pcs', 'dlm-controld' ]
+        name: [ 'pcs', 'dlm-controld' ]
         update_cache: yes
         state: latest
       when: ansible_distribution == 'Debian'
@@ -58,7 +58,7 @@
       run_once: true
 
     - name: show info get
-      shell:  pcs status resources
+      shell: sleep 10 && pcs status
       register: info
       run_once: true
 
