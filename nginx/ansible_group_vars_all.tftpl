@@ -1,0 +1,15 @@
+lb_upstreams:
+  - name: frontends
+    servers:
+%{ for i,frontend in frontends ~}
+      - host: ${frontend.network_interface.0.ip_address}
+        port: 80
+%{ endfor }
+
+frontend_upstreams:
+  - name: backends
+    servers:
+%{ for i,backend in backends ~}
+      - host: ${backend.network_interface.0.ip_address}
+        port: 8080
+%{ endfor }

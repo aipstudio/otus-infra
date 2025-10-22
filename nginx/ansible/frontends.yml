@@ -1,0 +1,58 @@
+- hosts: frontends
+  remote_user: debian
+  become: true
+  tasks:
+    - name: angie repo key
+      shell: |
+        sudo curl -o /etc/apt/trusted.gpg.d/angie-signing.gpg https://angie.software/keys/angie-signing.gpg
+        echo "deb https://download.angie.software/angie/$(. /etc/os-release && echo "$ID/$VERSION_ID $VERSION_CODENAME") main" | sudo tee /etc/apt/sources.list.d/angie.list > /dev/null
+
+    - name: install angie
+      apt:
+        name: [ 'angie' ]
+        update_cache: yes
+        state: latest
+
+    - name: angie delete default config
+      file:
+        path: /etc/angie/http.d/default.conf
+        state: absent
+      notify:
+      - reload angie
+
+    - name: angie config test
+      template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+      loop:
+        - src: frontend.angie.conf
+          dest: /etc/angie/angie.conf.test
+        - src: frontend.conf
+          dest: /etc/angie/http.d/frontend.conf.test
+
+    - name: angie config test prepare
+      replace:
+        path: /etc/angie/angie.conf.test
+        regexp: '.conf;$'
+        replace: '.conf.test;'
+
+    - name: angie config test
+      shell: angie -t -c /etc/angie/angie.conf.test
+
+    - name: angie config
+      template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+      loop:
+        - src: frontend.angie.conf
+          dest: /etc/angie/angie.conf
+        - src: frontend.conf
+          dest: /etc/angie/http.d/frontend.conf
+      notify:
+      - reload angie
+
+  handlers:
+    - name: reload angie
+      systemd:
+        name: angie
+        state: reloaded

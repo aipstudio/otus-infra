@@ -1,0 +1,16 @@
+[lb]
+${lb.name} ansible_host=${lb.network_interface.0.nat_ip_address} local_ip=${lb.network_interface.0.ip_address}
+
+[frontends]
+%{ for i,frontend in frontends ~}
+${frontend.name} ansible_host=${frontend.network_interface.0.nat_ip_address} local_ip=${frontend.network_interface.0.ip_address}
+%{ endfor ~}
+
+[frontends:vars]
+
+[backends]
+%{ for i,backend in backends ~}
+${backend.name} ansible_host=${backend.network_interface.0.nat_ip_address} local_ip=${backend.network_interface.0.ip_address}
+%{ endfor ~}
+
+[backends:vars]
