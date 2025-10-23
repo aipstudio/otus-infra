@@ -1,9 +1,0 @@
-- hosts: "{{ variable_hosts | default('bastions') }}"
-  remote_user: debian
-  become: true
-  tasks:
-    - name: install ansible
-      apt:
-        name: [ 'ansible' ]
-        update_cache: yes
-        state: latest
