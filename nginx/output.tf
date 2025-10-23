@@ -1,3 +1,14 @@
+output "info_bastion" {
+  value = {
+      name   = yandex_compute_instance.bastion.name
+      id     = yandex_compute_instance.bastion.id
+      fqdn   = yandex_compute_instance.bastion.fqdn
+      ip_nat = yandex_compute_instance.bastion.network_interface.0.nat_ip_address
+      ip     = yandex_compute_instance.bastion.network_interface.0.ip_address
+  }
+  description = "info"
+}
+
 output "info_lb" {
   value = {
       name   = yandex_compute_instance.lb.name

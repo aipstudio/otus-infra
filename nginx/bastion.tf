@@ -1,7 +1,6 @@
-resource "yandex_compute_instance" "frontends" {
-  name        = "frontend-${count.index + 1}"
+resource "yandex_compute_instance" "bastion" {
+  name        = "bastion"
   platform_id = "standard-v1"
-  count       = var.frontends_count
   resources {
     cores         = 2
     memory        = 1
@@ -17,7 +16,7 @@ resource "yandex_compute_instance" "frontends" {
   }
   network_interface {
     subnet_id = yandex_vpc_subnet.subnet.id
-    nat       = false
+    nat       = true
   }
   metadata = {
     serial-port-enable = local.serial-port

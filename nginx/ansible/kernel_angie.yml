@@ -1,0 +1,10 @@
+- name: copy sysctl angie.conf
+  copy:
+    src: 50-angie.conf
+    dest: /etc/sysctl.d/50-angie.conf
+
+- name: enable contrack
+  shell: modprobe nf_conntrack
+
+- name: apply sysctl
+  shell: sysctl -p /etc/sysctl.d/50-angie.conf

@@ -1,3 +1,15 @@
+variable "frontends_count" {
+  description = "Number of frontends"
+  type        = number
+  default     = 2
+}
+
+variable "backends_count" {
+  description = "Number of backends"
+  type        = number
+  default     = 2
+}
+
 variable "debian" {
   type        = string
   default     = "debian-12"
@@ -10,7 +22,6 @@ variable "centos" {
   description = "centos_name"
 }
 
-###cloud vars
 variable "token" {
   type        = string
   description = "OAuth-token; https://cloud.yandex.ru/docs/iam/concepts/authorization/oauth-token"
@@ -40,7 +51,7 @@ variable "default_cidr" {
 
 variable "vpc_name" {
   type        = string
-  default     = "net_otus"
+  default     = "subnet"
   description = "VPC network&subnet name"
 }
 

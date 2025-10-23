@@ -1,7 +1,9 @@
-- hosts: frontends
+- hosts: "{{ variable_hosts | default('frontends') }}"
   remote_user: debian
   become: true
   tasks:
+    - include_tasks: kernel_angie.yml
+
     - name: angie repo key
       shell: |
         sudo curl -o /etc/apt/trusted.gpg.d/angie-signing.gpg https://angie.software/keys/angie-signing.gpg

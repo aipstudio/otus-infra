@@ -1,0 +1,22 @@
+[all:vars]
+ansible_ssh_common_args='-o ProxyCommand="ssh -p 22 -W %h:%p -q debian@${bastion.network_interface.0.nat_ip_address}"'
+
+[bastions]
+${bastion.name} ansible_host=${bastion.network_interface.0.nat_ip_address} local_ip=${bastion.network_interface.0.ip_address}
+
+[loadbalancers]
+${lb.name} ansible_host=${lb.network_interface.0.ip_address}
+
+[frontends]
+%{ for i,frontend in frontends ~}
+${frontend.name} ansible_host=${frontend.network_interface.0.ip_address}
+%{ endfor ~}
+
+[frontends:vars]
+
+[backends]
+%{ for i,backend in backends ~}
+${backend.name} ansible_host=${backend.network_interface.0.ip_address}
+%{ endfor ~}
+
+[backends:vars]

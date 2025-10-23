@@ -1,7 +1,7 @@
 resource "yandex_compute_instance" "backends" {
   name        = "backend-${count.index + 1}"
   platform_id = "standard-v1"
-  count       = 1
+  count       = var.backends_count
   resources {
     cores         = 2
     memory        = 1
@@ -16,8 +16,8 @@ resource "yandex_compute_instance" "backends" {
     preemptible = true
   }
   network_interface {
-    subnet_id = yandex_vpc_subnet.net_otus.id
-    nat       = true
+    subnet_id = yandex_vpc_subnet.subnet.id
+    nat       = false
   }
   metadata = {
     serial-port-enable = local.serial-port

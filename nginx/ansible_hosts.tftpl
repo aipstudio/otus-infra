@@ -1,4 +1,7 @@
-[lb]
+[bastions]
+${bastion.name} ansible_host=${bastion.network_interface.0.nat_ip_address} local_ip=${bastion.network_interface.0.ip_address}
+
+[loadbalancers]
 ${lb.name} ansible_host=${lb.network_interface.0.nat_ip_address} local_ip=${lb.network_interface.0.ip_address}
 
 [frontends]

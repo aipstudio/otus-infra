@@ -1,0 +1,20 @@
+[Unit]
+Description=webdebugger
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+Restart=on-failure
+#User=debian
+#Group=debian
+WorkingDirectory=/opt
+Environment=APP_BGCOLOR=green
+ExecStartPre=-/usr/bin/docker stop webdebugger
+ExecStartPre=-/usr/bin/docker rm --force webdebugger
+ExecStartPre=/usr/bin/docker pull vscoder/webdebugger:latest
+ExecStart=/usr/bin/docker run -d --name webdebugger -p 8080:8080 vscoder/webdebugger:latest
+ExecStop=/usr/bin/docker stop webdebugger
+
+[Install]
+WantedBy=multi-user.target

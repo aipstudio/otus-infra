@@ -15,7 +15,7 @@ resource "yandex_compute_instance" "lb" {
     preemptible = true
   }
   network_interface {
-    subnet_id = yandex_vpc_subnet.net_otus.id
+    subnet_id = yandex_vpc_subnet.subnet.id
     nat       = true
   }
   metadata = {
