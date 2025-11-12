@@ -1,0 +1,48 @@
+- hosts: "{{ variable_hosts | default('backends') }}"
+  remote_user: debian
+  become: true
+  vars:
+    app_bgcolors: "{{ ['red', 'green', 'blue', 'white', 'yellow'] | random }}"
+  tasks:
+    - name: docker repo add
+      shell: |
+        curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+        chmod a+r /etc/apt/keyrings/docker.asc
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+    - name: install docker
+      apt:
+        name: [ 'docker-ce' ]
+        update_cache: yes
+        state: latest
+
+    - name: docker add users
+      user:
+        name: debian
+        groups: docker
+        append: yes
+
+    - name: docker run webdebbuger
+      shell: |
+        docker rm --force webdebugger
+        docker run -d --restart=unless-stopped -e APP_BGCOLOR="{{ app_bgcolors }}" --name webdebugger -p 8080:8080 vscoder/webdebugger:latest
+
+#    - name: webdebugger service create
+#      template:
+#        src: webdebugger.service
+#        dest: /etc/systemd/system/webdebugger.service
+#      notify:
+#        - restart webdebugger
+
+#    - name: webdebugger service run
+#      systemd:
+#        name: webdebugger
+#        state: started
+#        daemon_reload: true
+#        enabled: true
+
+  handlers:
+    - name: restart webdebugger
+      systemd:
+        name: webdebugger
+        state: restarted
