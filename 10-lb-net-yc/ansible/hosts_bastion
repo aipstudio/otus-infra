@@ -1,0 +1,19 @@
+[all:vars]
+ansible_ssh_common_args='-o ProxyCommand="ssh -p 22 -W %h:%p -q centos@178.154.203.75"'
+
+[bastion]
+bastion ansible_host=10.0.1.32
+
+[storage]
+storage ansible_host=10.0.1.29
+
+[frontends]
+frontend-1 ansible_host=10.0.1.8
+
+[frontends:vars]
+
+[backends]
+backend-1 ansible_host=10.0.1.6
+backend-2 ansible_host=10.0.1.12
+
+[backends:vars]

@@ -1,16 +1,16 @@
 - hosts: "{{ variable_hosts | default('frontends') }}"
-  remote_user: debian
+  remote_user: "{{ remote_user }}"
   become: true
   tasks:
     - include_tasks: kernel_angie.yml
 
-    - name: angie repo key
-      shell: |
-        curl -o /etc/apt/trusted.gpg.d/angie-signing.gpg https://angie.software/keys/angie-signing.gpg
-        echo "deb https://download.angie.software/angie/$(. /etc/os-release && echo "$ID/$VERSION_ID $VERSION_CODENAME") main" | tee /etc/apt/sources.list.d/angie.list > /dev/null
+    - name: copy angie repo
+      copy:
+        src: angie.repo
+        dest: /etc/yum.repos.d/angie.repo
 
     - name: install angie
-      apt:
+      yum:
         name: [ 'angie' ]
         update_cache: yes
         state: latest

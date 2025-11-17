@@ -1,0 +1,37 @@
+iscsi_iqn_name: iqn.2222-12.ru.trololo
+iscsi_target_name: storage.target00
+iscsi_host: 10.0.1.29
+iscsi_disk: /dev/vdb
+multipath_disk: /dev/sda
+remote_user: centos
+
+frontends:
+  - host: 10.0.1.8
+    port: 80
+    name: frontend-1
+
+
+backends:
+  - host: 10.0.1.6
+    port: 8080
+    name: backend-1
+  - host: 10.0.1.12
+    port: 8080
+    name: backend-2
+
+
+lb_upstreams:
+  - name: frontends
+    servers:
+      - host: 10.0.1.8
+        port: 80
+
+
+frontend_upstreams:
+  - name: backends
+    servers:
+      - host: 10.0.1.6
+        port: 8080
+      - host: 10.0.1.12
+        port: 8080
+

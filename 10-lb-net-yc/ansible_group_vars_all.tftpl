@@ -1,3 +1,24 @@
+iscsi_iqn_name: iqn.2222-12.ru.trololo
+iscsi_target_name: storage.target00
+iscsi_host: ${storage.network_interface.0.ip_address}
+iscsi_disk: /dev/vdb
+multipath_disk: /dev/sda
+remote_user: centos
+
+frontends:
+%{ for i,frontend in frontends.instances ~}
+  - host: ${frontend.network_interface.0.ip_address}
+    port: 80
+    name: ${frontend.name}
+%{ endfor }
+
+backends:
+%{ for i,backend in backends ~}
+  - host: ${backend.network_interface.0.ip_address}
+    port: 8080
+    name: ${backend.name}
+%{ endfor }
+
 lb_upstreams:
   - name: frontends
     servers:

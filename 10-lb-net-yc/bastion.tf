@@ -11,7 +11,7 @@ resource "yandex_compute_instance" "bastion" {
 
   boot_disk {
     initialize_params {
-      image_id = data.yandex_compute_image.debian.image_id
+      image_id = data.yandex_compute_image.centos.image_id
     }
   }
 
@@ -26,6 +26,17 @@ resource "yandex_compute_instance" "bastion" {
 
   metadata = {
     serial-port-enable = local.serial-port
-    ssh-keys           = "debian:${local.ssh-pub}"
+    ssh-keys           = "centos:${local.ssh-pub}"
   }
+}
+
+output "info_bastion" {
+  value = {
+    name   = yandex_compute_instance.bastion.name
+    id     = yandex_compute_instance.bastion.id
+    fqdn   = yandex_compute_instance.bastion.fqdn
+    ip_nat = yandex_compute_instance.bastion.network_interface.0.nat_ip_address
+    ip     = yandex_compute_instance.bastion.network_interface.0.ip_address
+  }
+  description = "info"
 }

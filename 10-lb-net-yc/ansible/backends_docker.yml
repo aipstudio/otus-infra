@@ -1,0 +1,41 @@
+- hosts: "{{ variable_hosts | default('backends') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  vars:
+    app_bgcolors: "{{ ['red', 'green', 'blue', 'white', 'yellow'] | random }}"
+  tasks:
+    - name: install dnf
+      yum:
+        name: [ 'dnf-plugins-core', 'dnf' ]
+
+    - name: add dnf repo
+      shell: dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+    - name: install docker
+      dnf:
+        name: ['docker-ce' ]
+        update_cache: yes
+        state: latest
+
+    - name: start docker daemon
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: docker add users
+      user:
+        name: centos
+        groups: docker
+        append: yes
+
+    - name: docker run webdebbuger
+      shell: |
+        docker rm --force webdebugger
+        docker run -d --restart=unless-stopped -e APP_BGCOLOR="{{ app_bgcolors }}" --name webdebugger -p 8080:8080 vscoder/webdebugger:latest
+
+  handlers:
+    - name: restart webdebugger
+      systemd:
+        name: webdebugger
+        state: restarted

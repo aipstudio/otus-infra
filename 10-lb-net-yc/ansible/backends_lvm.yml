@@ -1,0 +1,42 @@
+- hosts: backends
+  remote_user: "{{ remote_user }}"
+  become: true
+  vars:
+    multipath_disk_map_name: /dev/mapper/mpatha
+    vg_name: cluster_vg
+    lv_name: cluster_lv
+  tasks:
+    - name: install lvm2-cluster
+      yum:
+        name: [ 'gfs2-utils', 'lvm2-cluster' ]
+        update_cache: yes
+        state: latest
+
+    - name: LVM configure service
+      shell: lvmconf --enable-cluster
+
+    - name: LVM create PV and VG
+      run_once: true
+      lvg:
+        pvs: "{{ multipath_disk_map_name }}"
+        vg: "{{ vg_name }}"
+        vg_options: -cy
+
+    - name: LVM create LV
+      run_once: true
+      lvol:
+        vg: "{{ vg_name }}"
+        lv: "{{ lv_name }}"
+        size: 100%VG
+
+    - name: create gfs2
+      shell: mkfs.gfs2 -O -j2 -p lock_dlm -t gfs2:gfs2 "/dev/mapper/{{ vg_name }}-{{ lv_name }}"
+      run_once: true
+      ignore_errors: true
+
+    - name: PCS cluster configure GFS2 - /mnt/static
+      shell: |
+        pcs resource create clusterfs Filesystem device="/dev/mapper/{{ vg_name }}-{{ lv_name }}" directory="/mnt/static" fstype="gfs2" "options=noatime" op monitor interval=10s on-fail=ignore clone interleave=true
+        pcs constraint order start clvmd-clone then clusterfs-clone
+        pcs constraint colocation add clusterfs-clone with clvmd-clone
+      run_once: true

@@ -18,7 +18,7 @@ resource "yandex_compute_instance_group" "frontends" {
 
     boot_disk {
       initialize_params {
-        image_id = data.yandex_compute_image.debian.image_id
+        image_id = data.yandex_compute_image.centos.image_id
       }
     }
 
@@ -34,7 +34,7 @@ resource "yandex_compute_instance_group" "frontends" {
 
     metadata = {
       serial-port-enable = local.serial-port
-      ssh-keys = "debian:${local.ssh-pub}"
+      ssh-keys = "centos:${local.ssh-pub}"
     }
   }
 
@@ -53,6 +53,7 @@ resource "yandex_compute_instance_group" "frontends" {
     max_deleting = 0
     max_unavailable = 1
     max_expansion = 0
+    startup_duration = 60
   }
 
   load_balancer {
@@ -85,4 +86,29 @@ resource "yandex_lb_network_load_balancer" "lb_net" {
       }
     }
   }
+}
+
+output "info_frontends" {
+  value = [
+    for i in yandex_compute_instance_group.frontends.instances:
+    {
+      name   = i.name
+      id     = i.instance_id
+      fqdn   = i.fqdn
+      ip_nat = i.network_interface.0.nat_ip_address
+      ip     = i.network_interface.0.ip_address
+      status = i.status
+      status_message = i.status_message
+    }
+  ]
+  description = "info"
+}
+
+output "info_loadbalancer_net" {
+  value = {
+    name = yandex_lb_network_load_balancer.lb_net.name
+    id = yandex_lb_network_load_balancer.lb_net.id
+    listener = yandex_lb_network_load_balancer.lb_net.listener
+  }
+  description = "info"
 }

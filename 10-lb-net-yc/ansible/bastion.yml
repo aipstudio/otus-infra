@@ -1,5 +1,5 @@
-- hosts: "{{ variable_hosts | default('bstion') }}"
-  remote_user: debian
+- hosts: "{{ variable_hosts | default('bastion') }}"
+  remote_user: "{{ remote_user }}"
   become: true
   tasks:
     - name: first

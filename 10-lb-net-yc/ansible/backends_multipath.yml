@@ -1,0 +1,43 @@
+- hosts: backends
+  remote_user: "{{ remote_user }}"
+  become: true
+  vars:
+    disk_dev: "{{ multipath_disk }}"
+  tasks:
+    - name: install multipath
+      yum:
+        name: [ 'device-mapper-multipath', 'iscsi-initiator-utils' ]
+        update_cache: yes
+        state: latest
+
+    - name: copy config
+      template:
+        src: "{{ item }}"
+        dest: "/etc/{{ item }}"
+      loop:
+        - multipath.conf
+      notify:
+        - reload multipathd
+
+    - name: start multipathd
+      systemd:
+        name: multipathd
+        enabled: yes
+        state: started
+
+    - name: add disk to multipath
+      shell: |
+        multipath -W
+        multipath -a {{ disk_dev }}
+        multipath -r
+
+  handlers:
+    - name: restart multipathd
+      systemd:
+        name: multipathd
+        state: restarted
+
+    - name: reload multipathd
+      systemd:
+        name: multipathd
+        state: reloaded

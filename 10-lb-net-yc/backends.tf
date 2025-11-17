@@ -12,7 +12,7 @@ resource "yandex_compute_instance" "backends" {
 
   boot_disk {
     initialize_params {
-      image_id = data.yandex_compute_image.debian.image_id
+      image_id = data.yandex_compute_image.centos.image_id
     }
   }
 
@@ -27,6 +27,20 @@ resource "yandex_compute_instance" "backends" {
 
   metadata = {
     serial-port-enable = local.serial-port
-    ssh-keys           = "debian:${local.ssh-pub}"
+    ssh-keys           = "centos:${local.ssh-pub}"
   }
+}
+
+output "info_backends" {
+  value = [
+    for i in yandex_compute_instance.backends:
+    {
+      name   = i.name
+      id     = i.id
+      fqdn   = i.fqdn
+      ip_nat = i.network_interface.0.nat_ip_address
+      ip     = i.network_interface.0.ip_address
+    }
+  ]
+  description = "info"
 }

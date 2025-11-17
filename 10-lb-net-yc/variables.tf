@@ -7,7 +7,7 @@ variable "frontends_count" {
 variable "backends_count" {
   description = "Number of backends"
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "debian" {

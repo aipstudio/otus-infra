@@ -1,0 +1,75 @@
+- hosts: backends
+  remote_user: "{{ remote_user }}"
+  become: true
+  tasks:
+    - name: install packets
+      yum:
+        name: [ 'pcs', 'dlm', 'lvm2-cluster', 'watchdog' ]
+        update_cache: yes
+        state: latest
+
+    - name: watchdog - fence script - TODO
+      copy:
+        src: /usr/share/cluster/clusterfs.sh.metadata
+        dest: /etc/watchdog.d/clusterfs.sh.metadata
+        remote_src: yes
+
+    - name: watchdog - starting
+      systemd:
+        name: watchdog
+        state: started
+        enabled: yes
+
+    - name: generate passwd
+      set_fact:
+        hacluster_password: "{{ lookup('ansible.builtin.password', '/dev/null', length=20, chars=['ascii_letters', 'digits']) }}"
+      run_once: true
+
+    - name: set password for hacluster
+      user:
+        name: hacluster
+        password: "{{ hacluster_password | password_hash('sha512') }}"
+
+    - name: edit hosts
+      blockinfile:
+        path: /etc/hosts
+        marker: "# {mark} ANSIBLE MANAGED BLOCK HOSTS"
+        block: "{{ item }}"
+      loop:
+        - "{{lookup('ansible.builtin.template', 'hosts') }}"
+
+    - name: PCS enable daemon
+      systemd:
+        name: pcsd
+        state: restarted
+        enabled: true
+
+    - name: PCS destroy cluster pacemaker/corosync
+      shell: pcs cluster destroy --force
+
+    - name: PCS create cluster
+      shell: |
+        #pcs host auth backend-1 backend-2 -u hacluster -p "{{ hacluster_password }}"
+        pcs cluster auth {% for host in vars['play_hosts'] %}{{ hostvars[host].inventory_hostname }} addr={{ hostvars[host]['ansible_default_ipv4']['address'] }} {% endfor %} -u hacluster -p "{{ hacluster_password }}"
+        pcs cluster setup --name gfs2 {% for host in vars['play_hosts'] %}{{ hostvars[host].inventory_hostname }} {% endfor %} --force
+        pcs cluster start --all
+        pcs cluster enable --all
+        pcs property set stonith-enabled=false
+        pcs property set no-quorum-policy=freeze
+        pcs resource create dlm systemd:dlm op monitor interval=30s on-fail=ignore clone interleave=true ordered=true
+        pcs resource create clvmd ocf:heartbeat:clvm op monitor interval=30s on-fail=ignore clone interleave=true ordered=true
+        pcs constraint order start dlm-clone then clvmd-clone
+      run_once: true
+
+#    - name: PCS enable fencing #TODO
+#      shell: pcs stonith create lvm-shooter fence_lvm pcmk_host_list="{% for host in vars['play_hosts'] %}{{ hostvars[host].inventory_hostname }} {% endfor %}" vg_name={{ vg_name }} lv_name={{ lv_name }} meta provides=unfencing
+
+    - name: show info get
+      shell: sleep 30 && pcs status
+      register: info
+      run_once: true
+
+    - name: show info
+      debug:
+        msg: "{{ info.stdout_lines }}"
+      run_once: true
