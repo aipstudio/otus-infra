@@ -92,7 +92,7 @@ resource "null_resource" "ansible_provisioning_backends" {
     }
   }
   provisioner "local-exec" {
-    command     = "ansible-playbook -i ansible/hosts_bastion ansible/backends_docker.yml -e variable_hosts=${resource.yandex_compute_instance.backends[count.index].name}"
+    command     = "ansible-playbook -i ansible/hosts_bastion ansible/backends_docker.yml ansible/backends_iscsi.yml ansible/backends_multipath.yml -e variable_hosts=${resource.yandex_compute_instance.backends[count.index].name}"
     working_dir = path.module
     interpreter = ["bash", "-c"]
   }

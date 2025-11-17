@@ -4,21 +4,34 @@
   tasks:
     - name: install packets
       yum:
-        name: [ 'pcs', 'dlm', 'lvm2-cluster', 'watchdog' ]
+        name: [ 'pcs', 'dlm', 'lvm2-cluster', 'watchdog', 'fence-agents-scsi' ]
         update_cache: yes
         state: latest
 
-    - name: watchdog - fence script - TODO
-      copy:
-        src: /usr/share/cluster/clusterfs.sh.metadata
-        dest: /etc/watchdog.d/clusterfs.sh.metadata
-        remote_src: yes
+#    - name: watchdog - fence script - TODO
+#      copy:
+#        src: /usr/share/cluster/clusterfs.sh.metadata
+#        dest: /etc/watchdog.d/clusterfs.sh.metadata
+#        remote_src: yes
 
-    - name: watchdog - starting
-      systemd:
-        name: watchdog
-        state: started
-        enabled: yes
+#    - name: watchdog - starting
+#      systemd:
+#        name: watchdog
+#        state: started
+#        enabled: yes
+
+    - name: PCS create directory cluster
+      file:
+        path: /var/run/cluster/
+        state: directory
+
+    - name: copy fence_scsi - TODO
+      template:
+        src: "{{ item }}"
+        dest: "/var/run/cluster/{{ item }}"
+      loop:
+        - fence_scsi.dev
+        - fence_scsi.key
 
     - name: generate passwd
       set_fact:
@@ -61,8 +74,10 @@
         pcs constraint order start dlm-clone then clvmd-clone
       run_once: true
 
-#    - name: PCS enable fencing #TODO
-#      shell: pcs stonith create lvm-shooter fence_lvm pcmk_host_list="{% for host in vars['play_hosts'] %}{{ hostvars[host].inventory_hostname }} {% endfor %}" vg_name={{ vg_name }} lv_name={{ lv_name }} meta provides=unfencing
+    - name: PCS enable fencing - TODO
+      shell: |
+        pcs stonith create clusterfs-shooter fence_scsi pcmk_host_list="{% for host in vars['play_hosts'] %}{{ hostvars[host].inventory_hostname }};{% endfor %}" devices=/dev/sda logfile=/var/log/cluster/fence.log meta provides=unfencing
+        pcs property set stonith-enabled=true
 
     - name: show info get
       shell: sleep 30 && pcs status
