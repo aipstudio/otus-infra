@@ -20,3 +20,17 @@ ${backend.name} ansible_host=${backend.network_interface.0.ip_address}
 %{ endfor ~}
 
 [backends:vars]
+
+[mysqls]
+%{ for i,mysql in mysqls ~}
+${mysql.name} ansible_host=${mysql.network_interface.0.ip_address}
+%{ endfor ~}
+
+[mysqls:vars]
+
+[postgresqls]
+%{ for i,postgresql in postgresqls ~}
+${postgresql.name} ansible_host=${postgresql.network_interface.0.ip_address}
+%{ endfor ~}
+
+[postgresqls:vars]

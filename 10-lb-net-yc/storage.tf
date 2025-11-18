@@ -16,7 +16,7 @@ resource "yandex_compute_instance" "storage" {
   }
 
   dynamic "secondary_disk" {
-    for_each = yandex_compute_disk.storage_disk.*.id
+    for_each = yandex_compute_disk.storage_disks.*.id
       content {
         disk_id = secondary_disk.value
       }
@@ -37,9 +37,9 @@ resource "yandex_compute_instance" "storage" {
   }
 }
 
-resource "yandex_compute_disk" "storage_disk" {
+resource "yandex_compute_disk" "storage_disks" {
   count = 1
-  name     = "disk-${count.index}"
+  name     = "storage-disk-${count.index + 1}"
   type     = "network-hdd"
   size     = 1
   zone     = var.default_zone

@@ -1,0 +1,148 @@
+- hosts: "{{ variable_hosts | default('mysqls') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  order: sorted
+  vars:
+    pxc_cluster_name: "pxc-cluster"
+    pxc_root_password: "Trololo123" #TODO
+    mysqls_inventory_group: "mysqls"
+  tasks:
+    - name: PXC add repo rpm
+      yum:
+        name: https://repo.percona.com/yum/percona-release-latest.noarch.rpm
+        disable_gpg_check: yes
+        state: latest
+
+    - name: PXC configure repo
+      shell: percona-release setup pxc80
+
+    - name: PXC install
+      yum:
+        name: [ 'percona-xtradb-cluster' ]
+
+    - name: PXC configure bootstrap
+      vars:
+        pxc_bootstrap: "yes"
+      template:
+        src: my.cnf
+        dest: /etc/my.cnf
+      when: inventory_hostname == groups[mysqls_inventory_group][0]
+
+    - name: PXC mysql
+      systemd:
+        name: mysql
+      register: mysql_service
+
+    - name: PXC bootstrap the first node
+      systemd:
+        name: mysql@bootstrap
+        state: started
+      register: myserviceDetails
+      until: myserviceDetails.status.ActiveState == "active"
+      retries: 3
+      delay: 5
+      when:
+        - inventory_hostname == groups[mysqls_inventory_group][0]
+        - mysql_service.status.ActiveState != "active"
+
+    - name: PXC configure
+      template:
+        src: my.cnf
+        dest: /etc/my.cnf
+
+    - name: certs fetch server,ca pem
+      fetch:
+        src: "/var/lib/mysql/{{ item }}"
+        dest: "certs/{{ item }}"
+        flat: yes
+      loop:
+        - ca.pem
+        - server-cert.pem
+        - server-key.pem
+      when: inventory_hostname == groups[mysqls_inventory_group][0]
+
+    - name: certs push server,ca pem
+      copy:
+        src: "certs/{{ item }}"
+        dest: "/etc/mysql/certs/{{ item }}"
+        owner: mysql
+        group: mysql
+        mode: '0600'
+      loop:
+        - ca.pem
+        - server-cert.pem
+        - server-key.pem
+
+    - name: PXC - root /root/.my.cnf exists
+      stat:
+        path: /root/.my.cnf
+      register: cnf_file
+
+    - block:
+        - name: PXC get root pass tmp
+          shell:  grep 'temporary password' /var/log/mysqld.log | awk '{print $NF}' | tail -n 1
+          register: pxc_root_password_tmp
+
+        - name: PXC configure pass
+          vars:
+            pxc_root_password: "{{ pxc_root_password_tmp.stdout }}"
+          template:
+            src: .my.cnf
+            dest: /root/.my.cnf
+
+        - name: PXC set root pass
+          shell: |
+            mysql -u root --connect-expired-password -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '{{ pxc_root_password }}';"
+
+        - name: PXC delete root pass tmp
+          shell:  sed -i '/temporary password/d' /var/log/mysqld.log
+      run_once: true
+      when:
+        - inventory_hostname == groups[mysqls_inventory_group][0]
+        - not cnf_file.stat.exists
+
+    - name: PXC - root configire pass
+      template:
+        src: .my.cnf
+        dest: /root/.my.cnf
+
+    - name: PXC start on replicas nodes
+      systemd:
+        name: mysql
+        state: started
+      register: myserviceDetails
+      until: myserviceDetails.status.ActiveState == "active"
+      retries: 3
+      delay: 5
+      when: inventory_hostname != groups[mysqls_inventory_group][0]
+
+    - name: PCX pause for sync
+      pause:
+        seconds: 5
+
+    - name: PXC stop bootstrap service, start mysql service
+      systemd:
+        name: "{{ item.name }}"
+        state: "{{ item.state }}"
+      loop:
+        - name: mysql@bootstrap.service
+          state: stopped
+        - name: mysql
+          state: started
+      when: inventory_hostname == groups[mysqls_inventory_group][0]
+
+    - name: get status
+      shell: mysql -u root -e "show status like 'wsrep%';" | grep wsrep_cluster
+      register: status
+      run_once: true
+
+    - name: show status
+      debug:
+        msg: "{{ status.stdout_lines }}"
+      run_once: true
+
+  handlers:
+    - name: restart mysql
+      systemd:
+        name: mysql
+        state: restarted

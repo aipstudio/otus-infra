@@ -7,7 +7,19 @@ variable "frontends_count" {
 variable "backends_count" {
   description = "Number of backends"
   type        = number
+  default     = 1
+}
+
+variable "mysqls_count" {
+  description = "Number of mysqls"
+  type        = number
   default     = 2
+}
+
+variable "postgresqls_count" {
+  description = "Number of postgresqls"
+  type        = number
+  default     = 0
 }
 
 variable "debian" {

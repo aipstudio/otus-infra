@@ -19,6 +19,20 @@ backends:
     name: ${backend.name}
 %{ endfor }
 
+mysqls:
+%{ for i,mysql in mysqls ~}
+  - host: ${mysql.network_interface.0.ip_address}
+    port: 3306
+    name: ${mysql.name}
+%{ endfor }
+
+postgresqls:
+%{ for i,postgresql in postgresqls ~}
+  - host: ${postgresql.network_interface.0.ip_address}
+    port: 5432
+    name: ${postgresql.name}
+%{ endfor }
+
 lb_upstreams:
   - name: frontends
     servers:

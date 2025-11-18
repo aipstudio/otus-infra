@@ -74,10 +74,10 @@
         pcs constraint order start dlm-clone then clvmd-clone
       run_once: true
 
-    - name: PCS enable fencing - TODO
-      shell: |
-        pcs stonith create clusterfs-shooter fence_scsi pcmk_host_list="{% for host in vars['play_hosts'] %}{{ hostvars[host].inventory_hostname }};{% endfor %}" devices=/dev/sda logfile=/var/log/cluster/fence.log meta provides=unfencing
-        pcs property set stonith-enabled=true
+#    - name: PCS enable fencing - TODO
+#      shell: |
+#        pcs stonith create clusterfs-shooter fence_scsi pcmk_host_list="{% for host in vars['play_hosts'] %}{{ hostvars[host].inventory_hostname }};{% endfor %}" devices=/dev/sda logfile=/var/log/cluster/fence.log meta provides=unfencing
+#        pcs property set stonith-enabled=true
 
     - name: show info get
       shell: sleep 30 && pcs status

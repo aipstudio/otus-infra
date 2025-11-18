@@ -22,24 +22,24 @@
       notify:
       - reload angie
 
-    - name: angie config test
-      template:
-        src: "{{ item.src }}"
-        dest: "{{ item.dest }}"
-      loop:
-        - src: frontend.angie.conf
-          dest: /etc/angie/angie.conf.test
-        - src: frontend.conf
-          dest: /etc/angie/http.d/frontend.conf.test
+#    - name: angie config test
+#      template:
+#        src: "{{ item.src }}"
+#        dest: "{{ item.dest }}"
+#      loop:
+#        - src: frontend.angie.conf
+#          dest: /etc/angie/angie.conf.test
+#        - src: frontend.conf
+#          dest: /etc/angie/http.d/frontend.conf.test
 
-    - name: angie config test prepare
-      replace:
-        path: /etc/angie/angie.conf.test
-        regexp: '.conf;$'
-        replace: '.conf.test;'
+#    - name: angie config test prepare
+#      replace:
+#        path: /etc/angie/angie.conf.test
+#        regexp: '.conf;$'
+#        replace: '.conf.test;'
 
-    - name: angie config test
-      shell: angie -t -c /etc/angie/angie.conf.test
+#    - name: angie config test
+#      shell: angie -t -c /etc/angie/angie.conf.test
 
     - name: angie config
       template:

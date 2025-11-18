@@ -5,6 +5,8 @@ resource "local_file" "ansible_hosts_bastion" {
     storage = yandex_compute_instance.storage
     frontends = yandex_compute_instance_group.frontends
     backends = yandex_compute_instance.backends
+    mysqls = yandex_compute_instance.mysqls
+    postgresqls = yandex_compute_instance.postgresqls
   })
   filename = "ansible/hosts_bastion"
 }
@@ -16,6 +18,8 @@ resource "local_file" "ansible_group_vars_all" {
     storage = yandex_compute_instance.storage
     frontends = yandex_compute_instance_group.frontends
     backends = yandex_compute_instance.backends
+    mysqls = yandex_compute_instance.mysqls
+    postgresqls = yandex_compute_instance.postgresqls
   })
   filename = "ansible/group_vars/all.yml"
 }

@@ -1,0 +1,21 @@
+- hosts: "{{ variable_hosts | default('mysqls') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  order: sorted
+  tasks:
+    - name: PXC stop bootstrap service, stop mysql service
+      systemd:
+        name: "{{ item.name }}"
+        state: "{{ item.state }}"
+      loop:
+        - name: mysql@bootstrap.service
+          state: stopped
+        - name: mysql
+          state: stopped
+
+    - name: delete files
+      shell: |
+        rm -rf /root/.my.cnf
+        rm -rf /var/lib/mysql/*
+        rm -rf /etc/mysql/certs/*.pem
+        rm -rf /var/log/mysqld.log
