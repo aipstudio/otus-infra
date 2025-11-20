@@ -19,3 +19,4 @@
         rm -rf /var/lib/mysql/*
         rm -rf /etc/mysql/certs/*.pem
         rm -rf /var/log/mysqld.log
+        rm -rf /data/*

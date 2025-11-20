@@ -1,4 +1,4 @@
-- hosts: backends
+- hosts: "{{ variable_hosts | default('backends') }}"
   remote_user: "{{ remote_user }}"
   become: true
   tasks:

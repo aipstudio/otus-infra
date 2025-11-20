@@ -3,9 +3,8 @@
   become: true
   order: sorted
   vars:
-    pxc_cluster_name: "pxc-cluster"
-    pxc_root_password: "Trololo123" #TODO
     mysqls_inventory_group: "mysqls"
+    mysql_data_dir: "/data"
   tasks:
     - name: PXC add repo rpm
       yum:
@@ -19,6 +18,7 @@
     - name: PXC install
       yum:
         name: [ 'percona-xtradb-cluster' ]
+        state: latest
 
     - name: PXC configure bootstrap
       vars:
@@ -52,7 +52,7 @@
 
     - name: certs fetch server,ca pem
       fetch:
-        src: "/var/lib/mysql/{{ item }}"
+        src: "{{ mysql_data_dir }}/{{ item }}"
         dest: "certs/{{ item }}"
         flat: yes
       loop:
@@ -120,26 +120,45 @@
       pause:
         seconds: 5
 
-    - name: PXC stop bootstrap service, start mysql service
-      systemd:
-        name: "{{ item.name }}"
-        state: "{{ item.state }}"
-      loop:
-        - name: mysql@bootstrap.service
-          state: stopped
-        - name: mysql
-          state: started
-      when: inventory_hostname == groups[mysqls_inventory_group][0]
+#    - name: PXC stop bootstrap service, start mysql service #TODO - only one node
+#      systemd:
+#        name: "{{ item.name }}"
+#        state: "{{ item.state }}"
+#      loop:
+#        - name: mysql@bootstrap.service
+#          state: stopped
+#        - name: mysql
+#          state: started
+#      when: inventory_hostname == groups[mysqls_inventory_group][0]
 
     - name: get status
       shell: mysql -u root -e "show status like 'wsrep%';" | grep wsrep_cluster
-      register: status
+      register: cluster_status
       run_once: true
 
     - name: show status
       debug:
-        msg: "{{ status.stdout_lines }}"
+        msg: "{{ cluster_status.stdout_lines }}"
       run_once: true
+
+    - name: sql query write to db
+      shell: mysql -u root -e "CREATE DATABASE IF NOT EXISTS trololo; use trololo; CREATE TABLE IF NOT EXISTS accounts (id SERIAL, balance DECIMAL); INSERT INTO accounts(balance) VALUES ('10.0'), ('20.0'); SELECT * FROM accounts LIMIT 10;"
+      register: sql_query_result
+
+    - name: sql query show result
+      debug:
+        msg: "{{ sql_query_result.stdout_lines }}"
+      run_once: true
+
+    - name: sql copy file
+      template:
+        src: "{{ item }}"
+        dest: "/tmp/{{ item }}"
+      loop:
+        - mysql_users.sql
+
+    - name: create user for proxysql
+      shell: mysql -u root < /tmp/mysql_users.sql
 
   handlers:
     - name: restart mysql

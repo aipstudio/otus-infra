@@ -57,19 +57,20 @@ resource "yandex_compute_instance_group" "frontends" {
   }
 
   load_balancer {
-    target_group_name        = "network-load-balancer-group"
+    target_group_name        = "network-load-balancer-group-frontends"
     target_group_description = "Network Load Balancer"
   }
 }
 
-resource "yandex_lb_network_load_balancer" "lb_net" {
-  name = "network-load-balancer"
+resource "yandex_lb_network_load_balancer" "lb_net_frontend" {
+  name = "network-load-balancer-frontend"
   deletion_protection = false
   depends_on = [yandex_resourcemanager_folder_iam_member.load_balancer_editor]
 
   listener {
-    name = "network-load-balancer-1-listener"
+    name = "network-load-balancer-listener-80"
     port = 80
+    target_port = 80
     external_address_spec {
       ip_version = "ipv4"
     }
@@ -104,11 +105,11 @@ output "info_frontends" {
   description = "info"
 }
 
-output "info_loadbalancer_net" {
+output "info_loadbalancer_net_frontend" {
   value = {
-    name = yandex_lb_network_load_balancer.lb_net.name
-    id = yandex_lb_network_load_balancer.lb_net.id
-    listener = yandex_lb_network_load_balancer.lb_net.listener
+    name = yandex_lb_network_load_balancer.lb_net_frontend.name
+    id = yandex_lb_network_load_balancer.lb_net_frontend.id
+    listener = yandex_lb_network_load_balancer.lb_net_frontend.listener
   }
   description = "info"
 }

@@ -44,6 +44,48 @@ resource "yandex_compute_disk" "mysql_disks" {
   zone  = var.default_zone
 }
 
+resource "yandex_lb_target_group" "load_balancer_mysql" {
+  name = "network-load-balancer-group-mysqls"
+  dynamic "target" {
+    for_each = yandex_compute_instance.mysqls
+      content {
+        subnet_id = yandex_vpc_subnet.subnet.id
+        address   = target.value.network_interface.0.ip_address
+      }
+    }
+}
+
+resource "yandex_lb_network_load_balancer" "lb_net_mysql" {
+  name = "network-load-balancer-mysql-internal"
+  type = "internal"
+  deletion_protection = false
+  depends_on = [yandex_resourcemanager_folder_iam_member.load_balancer_editor]
+
+  listener {
+    name        = "network-load-balancer-listener-6033"
+    port        = 6033
+    target_port = 6033
+    protocol    = "tcp"
+    internal_address_spec {
+      ip_version = "ipv4"
+      subnet_id = yandex_vpc_subnet.subnet.id
+    }
+  }
+
+  attached_target_group {
+    target_group_id = yandex_lb_target_group.load_balancer_mysql.id
+    healthcheck {
+      name                = "mysql"
+      interval            = 5
+      timeout             = 2
+      unhealthy_threshold = 3
+      healthy_threshold   = 3
+      tcp_options {
+        port = 6033
+      }
+    }
+  }
+}
 
 output "info_mysqls" {
   value = [
@@ -56,5 +98,14 @@ output "info_mysqls" {
       ip     = i.network_interface.0.ip_address
     }
   ]
+  description = "info"
+}
+
+output "info_loadbalancer_net_mysql" {
+  value = {
+    name = yandex_lb_network_load_balancer.lb_net_mysql.name
+    id = yandex_lb_network_load_balancer.lb_net_mysql.id
+    listener = yandex_lb_network_load_balancer.lb_net_mysql.listener
+  }
   description = "info"
 }

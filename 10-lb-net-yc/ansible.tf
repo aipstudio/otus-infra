@@ -76,7 +76,7 @@ resource "null_resource" "ansible_provisioning_frontends" {
     }
   }
   provisioner "local-exec" {
-    command     = "ansible-playbook -i ansible/hosts_bastion ansible/frontends.yml -e variable_hosts=${resource.yandex_compute_instance_group.frontends.instances[count.index].name}"
+    command     = "ansible/run_frontends.sh ${resource.yandex_compute_instance_group.frontends.instances[count.index].name}"
     working_dir = path.module
     interpreter = ["bash", "-c"]
   }
@@ -96,7 +96,27 @@ resource "null_resource" "ansible_provisioning_backends" {
     }
   }
   provisioner "local-exec" {
-    command     = "ansible-playbook -i ansible/hosts_bastion ansible/backends_docker.yml ansible/backends_iscsi.yml ansible/backends_multipath.yml -e variable_hosts=${resource.yandex_compute_instance.backends[count.index].name}"
+    command     = "ansible/run_backends.sh ${resource.yandex_compute_instance.backends[count.index].name}"
+    working_dir = path.module
+    interpreter = ["bash", "-c"]
+  }
+}
+
+resource "null_resource" "ansible_provisioning_mysqls" {
+  depends_on = [resource.yandex_compute_instance.mysqls,resource.local_file.ansible_hosts_bastion,resource.local_file.ansible_group_vars_all]
+  count = var.mysqls_count
+  provisioner "remote-exec" {
+    inline = ["sleep 1"]
+    connection {
+      type        = "ssh"
+      user        = "centos"
+      host        = resource.yandex_compute_instance.mysqls[count.index].network_interface.0.ip_address
+      private_key = "${file(var.ssh_root_key.ssh-key)}"
+      bastion_host = resource.yandex_compute_instance.bastion.network_interface.0.nat_ip_address
+    }
+  }
+  provisioner "local-exec" {
+    command     = "ansible/run_mysqls.sh ${resource.yandex_compute_instance.mysqls[count.index].name}"
     working_dir = path.module
     interpreter = ["bash", "-c"]
   }

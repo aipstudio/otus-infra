@@ -1,9 +1,17 @@
+remote_user: centos
 iscsi_iqn_name: iqn.2222-12.ru.trololo
 iscsi_target_name: storage.target00
 iscsi_host: ${storage.network_interface.0.ip_address}
 iscsi_disk: /dev/vdb
 multipath_disk: /dev/sda
-remote_user: centos
+
+### MYSQL
+pxc_cluster_name: "pxc-cluster"
+pxc_root_password: "wnIAh7wOVaRZgLTqyAoBXZQfmueqBj"
+pxc_proxysql_username: "proxysql"
+pxc_proxysql_password: "mrBq2lYaboSDXhNcRfNqfA2auM3jmz"
+cms_username: "cms"
+cms_password: "dMn3T5eXqehwOpAiNHaDa4Jhe7WHi3"
 
 frontends:
 %{ for i,frontend in frontends.instances ~}

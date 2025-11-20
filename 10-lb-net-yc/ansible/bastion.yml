@@ -2,5 +2,6 @@
   remote_user: "{{ remote_user }}"
   become: true
   tasks:
-    - name: first
-      shell: echo true
+    - name: show message
+      debug:
+        msg: "echo trololo"

@@ -1,3 +1,7 @@
-{% for host in vars['play_hosts'] %}
-{{ hostvars[host]['ansible_default_ipv4']['address'] }} {{ hostvars[host].inventory_hostname }}
+{% for mysql in mysqls %}
+{{ mysql.host }} {{ mysql.name }}
+{% endfor %}
+
+{% for backend in backends %}
+{{ backend.host }} {{ backend.name }}
 {% endfor %}

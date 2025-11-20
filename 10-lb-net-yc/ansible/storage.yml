@@ -1,4 +1,4 @@
-- hosts: storage
+- hosts: "{{ variable_hosts | default('storage') }}"
   remote_user: "{{ remote_user }}"
   become: true
   tasks:
@@ -21,4 +21,3 @@
     - name: show info iscsi
       debug:
         msg: "{{ iscsi.stdout_lines }}"
-

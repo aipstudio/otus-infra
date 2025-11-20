@@ -1,0 +1,25 @@
+- hosts: "{{ variable_hosts | default('mysqls') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  vars:
+    data_disk_name: /dev/vdb
+    mysql_data_dir: /data
+  tasks:
+    - name: Create mount point directory
+      file:
+        path: "{{ mysql_data_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Format the disk with ext4 filesystem
+      filesystem:
+        fstype: xfs
+        dev: "{{ data_disk_name }}"
+
+    - name: Mount the disk and add to fstab
+      mount:
+        path: "{{ mysql_data_dir }}"
+        src: "{{ data_disk_name }}"
+        fstype: xfs
+        state: mounted
+        opts: defaults
