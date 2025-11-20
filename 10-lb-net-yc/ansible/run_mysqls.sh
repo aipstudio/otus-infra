@@ -7,6 +7,6 @@ if [[ "$1" != "" ]]; then
 fi
 
 #ansible-playbook -i hosts_bastion mysql_destroy.yml $ARGS
-#ansible-playbook -i hosts_bastion mysql_data.yml $ARGS
-#ansible-playbook -i hosts_bastion mysql.yml $ARGS
+ansible-playbook -i hosts_bastion mysql_data.yml $ARGS
+ansible-playbook -i hosts_bastion mysql.yml $ARGS
 ansible-playbook -i hosts_bastion mysql_proxysql.yml $ARGS

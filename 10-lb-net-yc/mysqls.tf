@@ -92,9 +92,6 @@ output "info_mysqls" {
     for i in yandex_compute_instance.mysqls:
     {
       name   = i.name
-      id     = i.id
-      fqdn   = i.fqdn
-      ip_nat = i.network_interface.0.nat_ip_address
       ip     = i.network_interface.0.ip_address
     }
   ]
@@ -104,8 +101,7 @@ output "info_mysqls" {
 output "info_loadbalancer_net_mysql" {
   value = {
     name = yandex_lb_network_load_balancer.lb_net_mysql.name
-    id = yandex_lb_network_load_balancer.lb_net_mysql.id
-    listener = yandex_lb_network_load_balancer.lb_net_mysql.listener
+    ip = [for listener in yandex_lb_network_load_balancer.lb_net_mysql.listener : [for internal_address_spec in listener.internal_address_spec : internal_address_spec.address ]]
+    port = [for listener in yandex_lb_network_load_balancer.lb_net_mysql.listener : listener.port ]
   }
-  description = "info"
 }

@@ -1,7 +1,6 @@
 - hosts: "{{ variable_hosts | default('mysqls') }}"
   remote_user: "{{ remote_user }}"
   become: true
-  order: sorted
   tasks:
     - name: PXC add repo rpm
       yum:
@@ -32,7 +31,7 @@
         - proxysql_logs.sql
         - proxysql_users.sql
 
-    - name: sql query write to db
+    - name: sql query configure
       shell: |
         mysql -u admin -padmin -h 127.0.0.1 -P 6032 < /tmp/proxysql_configure.sql
         mysql -u admin -padmin -h 127.0.0.1 -P 6032 < /tmp/proxysql_status.sql
@@ -40,7 +39,7 @@
         mysql -u admin -padmin -h 127.0.0.1 -P 6032 < /tmp/proxysql_users.sql
       register: proxysql_query_result
 
-    - name: show sql query result
+    - name: sql query result
       debug:
         msg: "{{ proxysql_query_result.stdout_lines }}"
       run_once: true

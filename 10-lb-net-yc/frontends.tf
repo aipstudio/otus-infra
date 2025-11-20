@@ -94,22 +94,17 @@ output "info_frontends" {
     for i in yandex_compute_instance_group.frontends.instances:
     {
       name   = i.name
-      id     = i.instance_id
-      fqdn   = i.fqdn
-      ip_nat = i.network_interface.0.nat_ip_address
       ip     = i.network_interface.0.ip_address
       status = i.status
       status_message = i.status_message
     }
   ]
-  description = "info"
 }
 
 output "info_loadbalancer_net_frontend" {
   value = {
     name = yandex_lb_network_load_balancer.lb_net_frontend.name
-    id = yandex_lb_network_load_balancer.lb_net_frontend.id
-    listener = yandex_lb_network_load_balancer.lb_net_frontend.listener
+    ip = [for listener in yandex_lb_network_load_balancer.lb_net_frontend.listener : [for external_address_spec in listener.external_address_spec : external_address_spec.address ]]
+    port = [for listener in yandex_lb_network_load_balancer.lb_net_frontend.listener : listener.port ]
   }
-  description = "info"
 }

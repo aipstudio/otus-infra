@@ -37,11 +37,7 @@ output "info_backends" {
     for i in yandex_compute_instance.backends:
     {
       name   = i.name
-      id     = i.id
-      fqdn   = i.fqdn
-      ip_nat = i.network_interface.0.nat_ip_address
       ip     = i.network_interface.0.ip_address
     }
   ]
-  description = "info"
 }
