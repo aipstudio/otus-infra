@@ -2,11 +2,12 @@ resource "yandex_compute_instance" "backends" {
   name        = "backend-${count.index + 1}"
   hostname    = "backend-${count.index + 1}"
   platform_id = "standard-v1"
+  allow_stopping_for_update = true
   count       = var.backends_count
 
   resources {
     cores         = 2
-    memory        = 1
+    memory        = 2
     core_fraction = 5
   }
 

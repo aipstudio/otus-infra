@@ -1,0 +1,60 @@
+- hosts: "{{ variable_hosts | default('frontends') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  tasks:
+    - include_tasks: kernel_angie.yml
+
+    - name: copy angie repo
+      copy:
+        src: angie.repo
+        dest: /etc/yum.repos.d/angie.repo
+
+    - name: install angie
+      yum:
+        name: [ 'angie' ]
+        update_cache: yes
+        state: present
+
+    - name: angie delete default config
+      file:
+        path: /etc/angie/http.d/default.conf
+        state: absent
+      notify:
+      - reload angie
+
+#    - name: angie config test
+#      template:
+#        src: "{{ item.src }}"
+#        dest: "{{ item.dest }}"
+#      loop:
+#        - src: frontend.angie.conf
+#          dest: /etc/angie/angie.conf.test
+#        - src: frontend.conf
+#          dest: /etc/angie/http.d/frontend.conf.test
+
+#    - name: angie config test prepare
+#      replace:
+#        path: /etc/angie/angie.conf.test
+#        regexp: '.conf;$'
+#        replace: '.conf.test;'
+
+#    - name: angie config test
+#      shell: angie -t -c /etc/angie/angie.conf.test
+
+    - name: angie config
+      template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+      loop:
+        - src: frontend.angie.conf
+          dest: /etc/angie/angie.conf
+        - src: frontend.conf
+          dest: /etc/angie/http.d/frontend.conf
+      notify:
+      - reload angie
+
+  handlers:
+    - name: reload angie
+      systemd:
+        name: angie
+        state: reloaded

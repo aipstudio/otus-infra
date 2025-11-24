@@ -3,54 +3,53 @@
   become: true
   order: sorted
   vars:
-    mysqls_inventory_group: "mysqls"
     mysql_data_dir: "/data"
   tasks:
-    - name: PXC add repo rpm
+    - name: PXC | add repo rpm
       yum:
         name: https://repo.percona.com/yum/percona-release-latest.noarch.rpm
         disable_gpg_check: yes
         state: latest
 
-    - name: PXC configure repo
+    - name: PXC | configure repo
       shell: percona-release setup pxc80
 
-    - name: PXC install
+    - name: PXC | install
       yum:
         name: [ 'percona-xtradb-cluster' ]
         state: latest
 
-    - name: PXC configure bootstrap
+    - name: PXC | configure bootstrap
       vars:
         pxc_bootstrap: "yes"
       template:
         src: my.cnf
         dest: /etc/my.cnf
-      when: inventory_hostname == groups[mysqls_inventory_group][0]
+      when: inventory_hostname == groups['mysqls'][0]
 
-    - name: PXC mysql
+    - name: PXC | mysql get service status
       systemd:
         name: mysql
       register: mysql_service
 
-    - name: PXC bootstrap the first node
+    - name: PXC | bootstrap the first node
       systemd:
         name: mysql@bootstrap
         state: started
-      register: myserviceDetails
-      until: myserviceDetails.status.ActiveState == "active"
+      register: mysql_bootstrap_service
+      until: mysql_bootstrap_service.status.ActiveState == "active"
       retries: 3
       delay: 5
       when:
-        - inventory_hostname == groups[mysqls_inventory_group][0]
+        - inventory_hostname == groups['mysqls'][0]
         - mysql_service.status.ActiveState != "active"
 
-    - name: PXC configure
+    - name: PXC | configure
       template:
         src: my.cnf
         dest: /etc/my.cnf
 
-    - name: certs fetch server,ca pem
+    - name: PXC | certs fetch server,ca pem
       fetch:
         src: "{{ mysql_data_dir }}/{{ item }}"
         dest: "certs/{{ item }}"
@@ -59,9 +58,9 @@
         - ca.pem
         - server-cert.pem
         - server-key.pem
-      when: inventory_hostname == groups[mysqls_inventory_group][0]
+      when: inventory_hostname == groups['mysqls'][0]
 
-    - name: certs push server,ca pem
+    - name: PXC | certs push server,ca pem
       copy:
         src: "certs/{{ item }}"
         dest: "/etc/mysql/certs/{{ item }}"
@@ -73,54 +72,59 @@
         - server-cert.pem
         - server-key.pem
 
-    - name: PXC - root /root/.my.cnf exists
+    - name: PCX | pause for sync
+      pause:
+        seconds: 60
+      when: inventory_hostname != groups['mysqls'][0]
+
+    - name: PXC | root /root/.my.cnf exists
       stat:
         path: /root/.my.cnf
       register: cnf_file
 
     - block:
-        - name: PXC get root pass tmp
+        - name: PXC | get root pass tmp
           shell:  grep 'temporary password' /var/log/mysqld.log | awk '{print $NF}' | tail -n 1
           register: pxc_root_password_tmp
 
-        - name: PXC configure pass
+        - name: PXC | configure pass
           vars:
             pxc_root_password: "{{ pxc_root_password_tmp.stdout }}"
           template:
             src: .my.cnf
             dest: /root/.my.cnf
 
-        - name: PXC set root pass
+        - name: PXC | set root pass
           shell: |
             mysql -u root --connect-expired-password -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '{{ pxc_root_password }}';"
 
-        - name: PXC delete root pass tmp
+        - name: PXC | delete root pass tmp
           shell:  sed -i '/temporary password/d' /var/log/mysqld.log
       run_once: true
       when:
-        - inventory_hostname == groups[mysqls_inventory_group][0]
+        - inventory_hostname == groups['mysqls'][0]
         - not cnf_file.stat.exists
 
-    - name: PXC - root configire pass
+    - name: PXC | root configire pass
       template:
         src: .my.cnf
         dest: /root/.my.cnf
 
-    - name: PXC start on replicas nodes
+    - name: PXC | start on replicas nodes
       systemd:
         name: mysql
         state: started
-      register: myserviceDetails
-      until: myserviceDetails.status.ActiveState == "active"
+      register: mysql_service
+      until: mysql_service.status.ActiveState == "active"
       retries: 3
       delay: 5
-      when: inventory_hostname != groups[mysqls_inventory_group][0]
+      when: inventory_hostname != groups['mysqls'][0]
 
-    - name: PCX pause for sync
+    - name: PCX | pause for sync
       pause:
         seconds: 5
 
-#    - name: PXC stop bootstrap service, start mysql service #TODO - only one node
+#    - name: PXC | stop bootstrap service, start mysql service #TODO - only one node
 #      systemd:
 #        name: "{{ item.name }}"
 #        state: "{{ item.state }}"
@@ -129,36 +133,39 @@
 #          state: stopped
 #        - name: mysql
 #          state: started
-#      when: inventory_hostname == groups[mysqls_inventory_group][0]
+#      when: inventory_hostname == groups['mysqls'][0]
 
-    - name: get status
+    - name: PXC | get status
       shell: mysql -u root -e "show status like 'wsrep%';" | grep wsrep_cluster
       register: cluster_status
       run_once: true
 
-    - name: show status
+    - name: PXC | show status
       debug:
         msg: "{{ cluster_status.stdout_lines }}"
       run_once: true
 
-    - name: sql query write to db
-      shell: mysql -u root -e "CREATE DATABASE IF NOT EXISTS trololo; use trololo; CREATE TABLE IF NOT EXISTS accounts (id SERIAL, balance DECIMAL); INSERT INTO accounts(balance) VALUES ('10.0'), ('20.0'); SELECT * FROM accounts LIMIT 10;"
+    - name: PXC | sql query write to db
+      shell: mysql -u root -e "CREATE DATABASE IF NOT EXISTS test; use test; CREATE TABLE IF NOT EXISTS test (id SERIAL, aaa DECIMAL); INSERT INTO test(aaa) VALUES ('10.0'), ('20.0'); SELECT * FROM test LIMIT 10;"
       register: sql_query_result
 
-    - name: sql query show result
+    - name: PXC | sql query show result
       debug:
         msg: "{{ sql_query_result.stdout_lines }}"
       run_once: true
 
-    - name: sql copy file
+    - name: PXC | sql copy file
       template:
         src: "{{ item }}"
         dest: "/tmp/{{ item }}"
       loop:
         - mysql_users.sql
+        - mysql_databases.sql
 
-    - name: create user for proxysql
-      shell: mysql -u root < /tmp/mysql_users.sql
+    - name: PXC | create user for proxysql
+      shell: |
+        mysql -u root < /tmp/mysql_users.sql
+        mysql -u root < /tmp/mysql_databases.sql
 
   handlers:
     - name: restart mysql

@@ -101,7 +101,7 @@ output "info_frontends" {
   ]
 }
 
-output "info_loadbalancer_net_frontend" {
+output "info_load_balancer_net_frontend" {
   value = {
     name = yandex_lb_network_load_balancer.lb_net_frontend.name
     ip = [for listener in yandex_lb_network_load_balancer.lb_net_frontend.listener : [for external_address_spec in listener.external_address_spec : external_address_spec.address ]]

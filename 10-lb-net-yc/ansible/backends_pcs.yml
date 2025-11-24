@@ -2,30 +2,30 @@
   remote_user: "{{ remote_user }}"
   become: true
   tasks:
-    - name: install packets
+    - name: PCS | install packets
       yum:
         name: [ 'pcs', 'dlm', 'lvm2-cluster', 'watchdog', 'fence-agents-scsi' ]
         update_cache: yes
         state: latest
 
-#    - name: watchdog - fence script - TODO
+#    - name: PCS | watchdog - fence script - TODO
 #      copy:
 #        src: /usr/share/cluster/clusterfs.sh.metadata
 #        dest: /etc/watchdog.d/clusterfs.sh.metadata
 #        remote_src: yes
 
-#    - name: watchdog - starting
+#    - name: PCS | watchdog - starting
 #      systemd:
 #        name: watchdog
 #        state: started
 #        enabled: yes
 
-    - name: PCS create directory cluster
+    - name: PCS | create directory cluster
       file:
         path: /var/run/cluster/
         state: directory
 
-    - name: copy fence_scsi - TODO
+    - name: PCS | copy fence_scsi - TODO
       template:
         src: "{{ item }}"
         dest: "/var/run/cluster/{{ item }}"
@@ -33,17 +33,17 @@
         - fence_scsi.dev
         - fence_scsi.key
 
-    - name: generate passwd
-      set_fact:
-        hacluster_password: "{{ lookup('ansible.builtin.password', '/dev/null', length=20, chars=['ascii_letters', 'digits']) }}"
-      run_once: true
+#    - name: PCS | generate passwd
+#      set_fact:
+#        hacluster_password: "{{ lookup('ansible.builtin.password', '/dev/null', length=20, chars=['ascii_letters', 'digits']) }}"
+#      run_once: true
 
-    - name: set password for hacluster
+    - name: PCS | set password for hacluster
       user:
         name: hacluster
-        password: "{{ hacluster_password | password_hash('sha512') }}"
+        password: "{{ pcs_hacluster_password | password_hash('sha512') }}"
 
-    - name: edit hosts
+    - name: PCS | edit hosts
       blockinfile:
         path: /etc/hosts
         marker: "# {mark} ANSIBLE MANAGED BLOCK HOSTS"
@@ -51,20 +51,21 @@
       loop:
         - "{{lookup('ansible.builtin.template', 'hosts') }}"
 
-    - name: PCS enable daemon
+    - name: PCS | enable daemon
       systemd:
         name: pcsd
         state: restarted
         enabled: true
 
-    - name: PCS destroy cluster pacemaker/corosync
+    - name: PCS | destroy cluster pacemaker/corosync
       shell: pcs cluster destroy --force
 
     - name: PCS create cluster
       shell: |
-        #pcs host auth backend-1 backend-2 -u hacluster -p "{{ hacluster_password }}"
-        pcs cluster auth {% for host in vars['play_hosts'] %}{{ hostvars[host].inventory_hostname }} addr={{ hostvars[host]['ansible_default_ipv4']['address'] }} {% endfor %} -u hacluster -p "{{ hacluster_password }}"
-        pcs cluster setup --name gfs2 {% for host in vars['play_hosts'] %}{{ hostvars[host].inventory_hostname }} {% endfor %} --force
+        sleep 60
+        #pcs host auth backend-1 backend-2 -u hacluster -p "{{ pcs_hacluster_password }}"
+        pcs cluster auth {% for backend in backends %}{{ backend.name }} addr={{ backend.host }} {% endfor %} -u hacluster -p "{{ pcs_hacluster_password }}"
+        pcs cluster setup --name gfs2 {% for backend in backends %}{{ backend.name }} {% endfor %} --force
         pcs cluster start --all
         pcs cluster enable --all
         pcs property set stonith-enabled=false
@@ -72,19 +73,19 @@
         pcs resource create dlm systemd:dlm op monitor interval=30s on-fail=ignore clone interleave=true ordered=true
         pcs resource create clvmd ocf:heartbeat:clvm op monitor interval=30s on-fail=ignore clone interleave=true ordered=true
         pcs constraint order start dlm-clone then clvmd-clone
-      run_once: true
+      when: inventory_hostname == groups['backends'][0]
 
-#    - name: PCS enable fencing - TODO
+#    - name: PCS | enable fencing - TODO
 #      shell: |
-#        pcs stonith create clusterfs-shooter fence_scsi pcmk_host_list="{% for host in vars['play_hosts'] %}{{ hostvars[host].inventory_hostname }};{% endfor %}" devices=/dev/sda logfile=/var/log/cluster/fence.log meta provides=unfencing
+#        pcs stonith create clusterfs-shooter fence_scsi pcmk_host_list="{% for backend in backends %}{{ backend.name }};{% endfor %}" devices=/dev/sda logfile=/var/log/cluster/fence.log meta provides=unfencing
 #        pcs property set stonith-enabled=true
 
-    - name: show info get
+    - name: PCS | show info get
       shell: sleep 30 && pcs status
       register: info
-      run_once: true
+      when: inventory_hostname == groups['backends'][0]
 
-    - name: show info
+    - name: PCS | show info
       debug:
         msg: "{{ info.stdout_lines }}"
-      run_once: true
+      when: inventory_hostname == groups['backends'][0]

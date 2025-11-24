@@ -20,6 +20,8 @@ resource "local_file" "ansible_group_vars_all" {
     backends = yandex_compute_instance.backends
     mysqls = yandex_compute_instance.mysqls
     postgresqls = yandex_compute_instance.postgresqls
+    var_net_lb_mysql = var.net_lb_mysql
+    var_net_lb_postgresql = var.net_lb_postgresql
   })
   filename = "ansible/group_vars/all.yml"
 }

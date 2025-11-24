@@ -1,0 +1,47 @@
+- hosts: "{{ variable_hosts | default('backends') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  tasks:
+    - name: PHP-FPM | epel install
+      yum:
+        name: ['yum-utils', 'epel-release', 'http://rpms.remirepo.net/enterprise/remi-release-7.rpm' ]
+        state: latest
+
+    - name: PHP-FPM | enable epel remi-php74
+      shell: yum-config-manager --enable remi-php74
+
+    - name: PHP-FPM | php-fpm install
+      yum:
+        name: [ 'php-fpm', 'php', 'php-ZendFramework-Db-Adapter-Mysqli' ]
+        state: latest
+
+    - name: PHP-FPM | Replace pattern php-fpm
+      replace:
+        path: /etc/php-fpm.d/www.conf
+        regexp: "{{ item.regexp }}"
+        replace: "{{ item.replace }}"
+      loop:
+        - regexp: '^(user = .*)$'
+          replace: 'user = angie'
+        - regexp: '^(group = .*)$'
+          replace: 'group = angie'
+      notify:
+        - restart php-fpm
+
+    - name: PHP-FPM | Replace pattern php.ini
+      replace:
+        path: /etc/php.ini
+        regexp: "{{ item.regexp }}"
+        replace: "{{ item.replace }}"
+      loop:
+        - regexp: '(cgi.fix_pathinfo=.*)$'
+          replace: 'cgi.fix_pathinfo=0'
+      notify:
+        - restart php-fpm
+
+  handlers:
+    - name: restart php-fpm
+      systemd:
+        name: php-fpm
+        state: restarted
+        enabled: true

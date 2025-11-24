@@ -1,0 +1,13 @@
+- hosts: "{{ variable_hosts | default('backends') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  tasks:
+### TODO setfacl from php-fpm
+    - name: SELinux | is disabled in config file
+      replace:
+        path: /etc/selinux/config
+        regexp: '^SELINUX=.*'
+        replace: 'SELINUX=disabled'
+
+    - name: SELinux | Force disabled
+      shell: setenforce 0

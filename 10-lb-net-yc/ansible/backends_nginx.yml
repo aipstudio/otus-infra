@@ -1,4 +1,4 @@
-- hosts: "{{ variable_hosts | default('frontends') }}"
+- hosts: "{{ variable_hosts | default('backends') }}"
   remote_user: "{{ remote_user }}"
   become: true
   tasks:
@@ -13,7 +13,7 @@
       yum:
         name: [ 'angie' ]
         update_cache: yes
-        state: latest
+        state: present
 
     - name: angie delete default config
       file:
@@ -22,34 +22,15 @@
       notify:
       - reload angie
 
-#    - name: angie config test
-#      template:
-#        src: "{{ item.src }}"
-#        dest: "{{ item.dest }}"
-#      loop:
-#        - src: frontend.angie.conf
-#          dest: /etc/angie/angie.conf.test
-#        - src: frontend.conf
-#          dest: /etc/angie/http.d/frontend.conf.test
-
-#    - name: angie config test prepare
-#      replace:
-#        path: /etc/angie/angie.conf.test
-#        regexp: '.conf;$'
-#        replace: '.conf.test;'
-
-#    - name: angie config test
-#      shell: angie -t -c /etc/angie/angie.conf.test
-
     - name: angie config
       template:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
       loop:
-        - src: frontend.angie.conf
+        - src: backend.angie.conf
           dest: /etc/angie/angie.conf
-        - src: frontend.conf
-          dest: /etc/angie/http.d/frontend.conf
+        - src: backend.conf
+          dest: /etc/angie/http.d/backend.conf
       notify:
       - reload angie
 

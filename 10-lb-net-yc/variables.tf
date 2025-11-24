@@ -61,6 +61,16 @@ variable "default_cidr" {
   description = "https://cloud.yandex.ru/docs/vpc/operations/subnet-create"
 }
 
+variable "net_lb_mysql" {
+  type        = string
+  default     = "10.0.1.50"
+}
+
+variable "net_lb_postgresql" {
+  type        = string
+  default     = "10.0.1.51"
+}
+
 variable "vpc_subnet_name" {
   type        = string
   default     = "subnet"

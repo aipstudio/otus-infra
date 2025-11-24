@@ -4,15 +4,25 @@ iscsi_target_name: storage.target00
 iscsi_host: ${storage.network_interface.0.ip_address}
 iscsi_disk: /dev/vdb
 multipath_disk: /dev/sda
+static_dir: /mnt/static
+
+### PCS
+pcs_hacluster_password: "ao3oosaivo8aicieng0Ozex8roo4Ua"
 
 ### MYSQL
-pxc_cluster_lb: 
+pxc_cluster_lb_host: "${var_net_lb_mysql}"
+pxc_cluster_lb_port: "6033"
 pxc_cluster_name: "pxc-cluster"
 pxc_root_password: "wnIAh7wOVaRZgLTqyAoBXZQfmueqBj"
 pxc_proxysql_username: "proxysql"
 pxc_proxysql_password: "mrBq2lYaboSDXhNcRfNqfA2auM3jmz"
-cms_username: "cms"
+cms_name: "wordpress"
+cms_database: "wordpress"
+cms_username: "wordpress"
 cms_password: "dMn3T5eXqehwOpAiNHaDa4Jhe7WHi3"
+
+### POSTGRESQL
+patroni_cluster_lb: "${var_net_lb_postgresql}"
 
 frontends:
 %{ for i,frontend in frontends.instances ~}
@@ -24,7 +34,7 @@ frontends:
 backends:
 %{ for i,backend in backends ~}
   - host: ${backend.network_interface.0.ip_address}
-    port: 8080
+    port: 80
     name: ${backend.name}
 %{ endfor }
 

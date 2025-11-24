@@ -6,6 +6,8 @@ if [[ "$1" != "" ]]; then
   ARGS="-e variable_hosts='$1'"
 fi
 
+export ANSIBLE_FORCE_COLOR=true
+
 #ansible-playbook -i hosts_bastion mysql_destroy.yml $ARGS
 ansible-playbook -i hosts_bastion mysql_data.yml $ARGS
 ansible-playbook -i hosts_bastion mysql.yml $ARGS

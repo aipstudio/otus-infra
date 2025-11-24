@@ -69,6 +69,7 @@ resource "yandex_lb_network_load_balancer" "lb_net_mysql" {
     internal_address_spec {
       ip_version = "ipv4"
       subnet_id = yandex_vpc_subnet.subnet.id
+      address = var.net_lb_mysql
     }
   }
 
@@ -98,7 +99,7 @@ output "info_mysqls" {
   description = "info"
 }
 
-output "info_loadbalancer_net_mysql" {
+output "info_load_balancer_net_mysql" {
   value = {
     name = yandex_lb_network_load_balancer.lb_net_mysql.name
     ip = [for listener in yandex_lb_network_load_balancer.lb_net_mysql.listener : [for internal_address_spec in listener.internal_address_spec : internal_address_spec.address ]]

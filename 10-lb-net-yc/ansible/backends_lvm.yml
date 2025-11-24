@@ -16,27 +16,52 @@
       shell: lvmconf --enable-cluster
 
     - name: LVM create PV and VG
-      run_once: true
       lvg:
         pvs: "{{ multipath_disk_map_name }}"
         vg: "{{ vg_name }}"
         vg_options: -cy
+      when: inventory_hostname == groups['backends'][0]
 
     - name: LVM create LV
-      run_once: true
       lvol:
         vg: "{{ vg_name }}"
         lv: "{{ lv_name }}"
         size: 100%VG
+      when: inventory_hostname == groups['backends'][0]
 
     - name: create gfs2
       shell: mkfs.gfs2 -O -j2 -p lock_dlm -t gfs2:gfs2 "/dev/mapper/{{ vg_name }}-{{ lv_name }}"
-      run_once: true
       ignore_errors: true
+      when: inventory_hostname == groups['backends'][0]
 
-    - name: PCS cluster configure GFS2 - /mnt/static
+#    - name: Mount the disk and add to fstab
+#      mount:
+#        path: "{{ static_dir }}"
+#        src: "{{ multipath_disk_map_name }}"
+#        fstype: gfs2
+#        state: mounted
+#        opts: defaults
+
+    - name: delete dir /mnt/static
+      file:
+        path: /mnt/static
+        state: absent
+
+    - name: PCS cluster configure GFS2 - {{ static_dir }}
       shell: |
-        pcs resource create clusterfs Filesystem device="/dev/mapper/{{ vg_name }}-{{ lv_name }}" directory="/mnt/static" fstype="gfs2" "options=noatime" op monitor interval=10s on-fail=ignore clone interleave=true
+        pcs resource create clusterfs Filesystem device="/dev/mapper/{{ vg_name }}-{{ lv_name }}" directory="{{ static_dir }}" fstype="gfs2" "options=noatime" op monitor interval=10s on-fail=ignore clone interleave=true
         pcs constraint order start clvmd-clone then clusterfs-clone
         pcs constraint colocation add clusterfs-clone with clvmd-clone
-      run_once: true
+      ignore_errors: true
+      when: inventory_hostname == groups['backends'][0]
+
+    - name: PCS | show info get
+      shell: sleep 5 && pcs status
+      register: info
+      when: inventory_hostname == groups['backends'][0]
+
+    - name: PCS | show info
+      debug:
+        msg: "{{ info.stdout_lines }}"
+      when: inventory_hostname == groups['backends'][0]
+

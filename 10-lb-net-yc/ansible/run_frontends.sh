@@ -6,4 +6,6 @@ if [[ "$1" != "" ]]; then
   ARGS="-e variable_hosts='$1'"
 fi
 
-ansible-playbook -i hosts_bastion frontends.yml $ARGS
+export ANSIBLE_FORCE_COLOR=true
+
+ansible-playbook -i hosts_bastion frontends_nginx.yml $ARGS
