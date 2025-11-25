@@ -4,4 +4,4 @@
   tasks:
     - name: show message
       debug:
-        msg: "echo trololo"
+        msg: "echo I'm JumpHost=)"

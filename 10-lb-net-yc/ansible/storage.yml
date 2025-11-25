@@ -2,22 +2,22 @@
   remote_user: "{{ remote_user }}"
   become: true
   tasks:
-    - name: install targetcli
+    - name: ISCSI-Targer | install targetcli
       yum:
         name: [ 'targetcli' ]
         update_cache: yes
         state: latest
 
-    - name: Copy scripts
+    - name: ISCSI-Targer | Copy scripts
       template:
         src: storage_iscsi.sh
         dest: /tmp/storage_iscsi.sh
         mode: '0755'
 
-    - name: Create iSCSI target and LUN
+    - name: ISCSI-Targer | Create iSCSI target and LUN
       shell: /tmp/storage_iscsi.sh
       register: iscsi
 
-    - name: show info iscsi
+    - name: ISCSI-Targer | show info iscsi
       debug:
         msg: "{{ iscsi.stdout_lines }}"

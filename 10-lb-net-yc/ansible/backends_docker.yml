@@ -4,32 +4,32 @@
   vars:
     app_bgcolors: "{{ ['red', 'green', 'blue', 'white', 'yellow'] | random }}"
   tasks:
-    - name: install dnf
+    - name: DOCKER | install dnf
       yum:
         name: [ 'dnf-plugins-core', 'dnf' ]
 
-    - name: add dnf repo
+    - name: DOCKER | add dnf repo
       shell: dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 
-    - name: install docker
+    - name: DOCKER | install
       dnf:
         name: ['docker-ce' ]
         update_cache: yes
         state: latest
 
-    - name: start docker daemon
+    - name: DOCKER | start daemon
       systemd:
         name: docker
         state: started
         enabled: yes
 
-    - name: docker add users
+    - name: DOCKER | add users
       user:
         name: centos
         groups: docker
         append: yes
 
-    - name: docker run webdebbuger
+    - name: DOCKER | run webdebbuger
       shell: |
         docker rm --force webdebugger
         docker run -d --restart=unless-stopped -e APP_BGCOLOR="{{ app_bgcolors }}" --name webdebugger -p 8080:8080 vscoder/webdebugger:latest

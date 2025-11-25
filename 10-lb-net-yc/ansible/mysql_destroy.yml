@@ -3,7 +3,7 @@
   become: true
   order: sorted
   tasks:
-    - name: PXC stop bootstrap service, stop mysql service
+    - name: PXC | stop bootstrap service, stop mysql service
       systemd:
         name: "{{ item.name }}"
         state: "{{ item.state }}"
@@ -13,7 +13,7 @@
         - name: mysql
           state: stopped
 
-    - name: delete files
+    - name: PXC | delete files
       shell: |
         rm -rf /root/.my.cnf
         rm -rf /var/lib/mysql/*

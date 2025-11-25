@@ -1,7 +1,7 @@
 variable "frontends_count" {
   description = "Number of frontends"
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "backends_count" {

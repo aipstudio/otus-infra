@@ -1,17 +1,17 @@
-- name: Get file status
+- name: SYSCTL | Get file status
   stat:
     path: "/etc/sysctl.d/50-angie.conf"
   register: sysctl_angie_file
 
 - block:
-  - name: copy sysctl angie.conf
+  - name: SYSCTL | copy sysctl angie.conf
     copy:
       src: 50-angie.conf
       dest: /etc/sysctl.d/50-angie.conf
 
-  - name: enable contrack
+  - name: SYSCTL | enable contrack
     shell: modprobe nf_conntrack
 
-  - name: apply sysctl
+  - name: SYSCTL | apply sysctl
     shell: sysctl -p /etc/sysctl.d/50-angie.conf
   when: not sysctl_angie_file.stat.exists

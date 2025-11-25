@@ -77,8 +77,8 @@ resource "yandex_lb_network_load_balancer" "lb_net_mysql" {
     target_group_id = yandex_lb_target_group.load_balancer_mysql.id
     healthcheck {
       name                = "mysql"
-      interval            = 5
-      timeout             = 2
+      interval            = 3
+      timeout             = 1
       unhealthy_threshold = 3
       healthy_threshold   = 3
       tcp_options {

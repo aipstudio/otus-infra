@@ -2,26 +2,26 @@
   remote_user: "{{ remote_user }}"
   become: true
   tasks:
-    - name: PXC add repo rpm
+    - name: PXC-ProxySQL | add repo rpm
       yum:
         name: https://repo.percona.com/yum/percona-release-latest.noarch.rpm
         disable_gpg_check: yes
         state: latest
 
-    - name: PXC configure repo
+    - name: PXC-ProxySQL | configure repo
       shell: percona-release setup pxc80
 
-    - name: PXC install proxySQL
+    - name: PXC-ProxySQL | install proxySQL
       yum:
         name: [ 'percona-xtradb-cluster-client', 'proxysql2' ]
 
-    - name: PXC start proxysql
+    - name: PXC-ProxySQL | start proxysql
       systemd:
         name: proxysql
         enabled: true
         state: started
 
-    - name: sql copy configure file
+    - name: PXC-ProxySQL | sql copy configure file
       template:
         src: "{{ item }}"
         dest: "/tmp/{{ item }}"
@@ -31,7 +31,7 @@
         - proxysql_logs.sql
         - proxysql_users.sql
 
-    - name: sql query configure
+    - name: PXC-ProxySQL | sql query configure
       shell: |
         mysql -u admin -padmin -h 127.0.0.1 -P 6032 < /tmp/proxysql_configure.sql
         mysql -u admin -padmin -h 127.0.0.1 -P 6032 < /tmp/proxysql_status.sql
@@ -39,7 +39,7 @@
         mysql -u admin -padmin -h 127.0.0.1 -P 6032 < /tmp/proxysql_users.sql
       register: proxysql_query_result
 
-    - name: sql query result
+    - name: PXC-ProxySQL | sql query result
       debug:
         msg: "{{ proxysql_query_result.stdout_lines }}"
       run_once: true

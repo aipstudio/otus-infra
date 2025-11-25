@@ -4,9 +4,12 @@
   tasks:
     - name: PCS | install packets
       yum:
-        name: [ 'pcs', 'dlm', 'lvm2-cluster', 'watchdog', 'fence-agents-scsi' ]
+        name: [ 'pcs', 'dlm', 'lvm2-cluster', 'gfs2-utils', 'watchdog', 'fence-agents-scsi' ]
         update_cache: yes
         state: latest
+
+    - name: LVM configure service
+      shell: lvmconf --enable-cluster
 
 #    - name: PCS | watchdog - fence script - TODO
 #      copy:

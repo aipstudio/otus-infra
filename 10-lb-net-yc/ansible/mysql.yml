@@ -19,7 +19,12 @@
         name: [ 'percona-xtradb-cluster' ]
         state: latest
 
-    - name: PXC | configure bootstrap
+    - name: PCX | pause for replicas (while bootstarp starting)
+      pause:
+        seconds: 120
+      when: inventory_hostname != groups['mysqls'][0]
+
+    - name: PXC | configure bootstrap for first node
       vars:
         pxc_bootstrap: "yes"
       template:
@@ -44,12 +49,12 @@
         - inventory_hostname == groups['mysqls'][0]
         - mysql_service.status.ActiveState != "active"
 
-    - name: PXC | configure
+    - name: PXC | configure all nodes
       template:
         src: my.cnf
         dest: /etc/my.cnf
 
-    - name: PXC | certs fetch server,ca pem
+    - name: PXC | certs fetch server,ca pem - TODO generate certs itself
       fetch:
         src: "{{ mysql_data_dir }}/{{ item }}"
         dest: "certs/{{ item }}"
@@ -71,11 +76,6 @@
         - ca.pem
         - server-cert.pem
         - server-key.pem
-
-    - name: PCX | pause for sync
-      pause:
-        seconds: 60
-      when: inventory_hostname != groups['mysqls'][0]
 
     - name: PXC | root /root/.my.cnf exists
       stat:
@@ -113,16 +113,12 @@
     - name: PXC | start on replicas nodes
       systemd:
         name: mysql
-        state: started
+        state: restarted
       register: mysql_service
       until: mysql_service.status.ActiveState == "active"
       retries: 3
       delay: 5
       when: inventory_hostname != groups['mysqls'][0]
-
-    - name: PCX | pause for sync
-      pause:
-        seconds: 5
 
 #    - name: PXC | stop bootstrap service, start mysql service #TODO - only one node
 #      systemd:

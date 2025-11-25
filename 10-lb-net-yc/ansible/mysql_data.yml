@@ -5,18 +5,18 @@
     data_disk_name: /dev/vdb
     mysql_data_dir: /data
   tasks:
-    - name: Create mount point directory
+    - name: PXC-Data | Create mount point directory
       file:
         path: "{{ mysql_data_dir }}"
         state: directory
         mode: '0755'
 
-    - name: Format the disk with ext4 filesystem
+    - name: PXC-Data | Format the disk with ext4 filesystem
       filesystem:
         fstype: xfs
         dev: "{{ data_disk_name }}"
 
-    - name: Mount the disk and add to fstab
+    - name: PXC-Data | Mount the disk and add to fstab
       mount:
         path: "{{ mysql_data_dir }}"
         src: "{{ data_disk_name }}"

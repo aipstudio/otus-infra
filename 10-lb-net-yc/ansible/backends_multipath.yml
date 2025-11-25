@@ -4,13 +4,13 @@
   vars:
     disk_dev: "{{ multipath_disk }}"
   tasks:
-    - name: install multipath
+    - name: MULTIPATH | install
       yum:
         name: [ 'device-mapper-multipath', 'iscsi-initiator-utils' ]
         update_cache: yes
         state: latest
 
-    - name: copy config
+    - name: MULTIPATH | copy config
       template:
         src: "{{ item }}"
         dest: "/etc/{{ item }}"
@@ -19,13 +19,13 @@
       notify:
         - reload multipathd
 
-    - name: start multipathd
+    - name: MULTIPATH | start multipathd
       systemd:
         name: multipathd
         enabled: yes
         state: started
 
-    - name: add disk to multipath
+    - name: MULTIPATH | add disk to multipath
       shell: |
         multipath -W
         multipath -a {{ disk_dev }}

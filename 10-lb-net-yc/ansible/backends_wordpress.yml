@@ -1,38 +1,40 @@
-- hosts: "{{ variable_hosts | default('backend-1') }}"
+- hosts: "{{ variable_hosts | default('backends') }}"
   remote_user: "{{ remote_user }}"
   become: true
   tasks:
-    - name: CMS-Wordpress | Get file status
-      stat:
-        path: "{{ static_dir }}/latest.tar.gz"
-      register: wordpress_latest_file
+    - block:
+      - name: CMS-Wordpress | Get file status
+        stat:
+          path: "{{ static_dir }}/latest.tar.gz"
+        register: wordpress_latest_file
 
-    - name: CMS-Wordpress | get zip
-      get_url:
-        url: "https://wordpress.org/latest.tar.gz"
-        dest: "{{ static_dir }}"
-      when: not wordpress_latest_file.stat.exists
+      - name: CMS-Wordpress | get zip
+        get_url:
+          url: "https://wordpress.org/latest.tar.gz"
+          dest: "{{ static_dir }}"
+        when: not wordpress_latest_file.stat.exists
 
-    - name: CMS-Wordpress | unarchive a file
-      unarchive:
-        src: "{{ static_dir }}/latest.tar.gz"
-        dest: "{{ static_dir }}"
-        remote_src: yes
-      when: not wordpress_latest_file.stat.exists
+      - name: CMS-Wordpress | unarchive a file
+        unarchive:
+          src: "{{ static_dir }}/latest.tar.gz"
+          dest: "{{ static_dir }}"
+          remote_src: yes
+        when: not wordpress_latest_file.stat.exists
 
-    - name: CMS-Wordpress | copy bootstrap config
-      template:
-        src: "{{ item }}"
-        dest: "{{ static_dir }}/{{ cms_name }}"
-      loop:
-        - wp-config.php
-        - info.php
+      - name: CMS-Wordpress | copy bootstrap config
+        template:
+          src: "{{ item }}"
+          dest: "{{ static_dir }}/{{ cms_name }}"
+        loop:
+          - wp-config.php
+          - info.php
 
-    - name: CMS-Wordpress | owner to angie from {{ static_dir }}/{{ cms_name }}
-      file:
-        path: "{{ static_dir }}/{{ cms_name }}"
-        owner: angie
-        group: angie
-        state: directory
-        recurse: yes
+      - name: CMS-Wordpress | owner to angie from {{ static_dir }}/{{ cms_name }}
+        file:
+          path: "{{ static_dir }}/{{ cms_name }}"
+          owner: angie
+          group: angie
+          state: directory
+          recurse: yes
 
+      when: inventory_hostname == groups['backends'][0]

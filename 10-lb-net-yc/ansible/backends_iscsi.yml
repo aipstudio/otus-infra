@@ -2,13 +2,13 @@
   remote_user: "{{ remote_user }}"
   become: true
   tasks:
-    - name: install open-iscsi
+    - name: ISCSI-Initiators | install open-iscsi
       yum:
         name: [ 'iscsi-initiator-utils' ]
         update_cache: yes
         state: latest
 
-    - name: copy config
+    - name: ISCSI-Initiators | copy config
       template:
         src: "{{ item }}"
         dest: "/etc/iscsi/{{ item }}"
@@ -18,18 +18,18 @@
       notify:
         - restart iscsi
 
-    - name: connect to target
+    - name: ISCSI-Initiators | connect to target
       shell: |
         iscsiadm -m node -u -T {{ iscsi_iqn_name }}:{{ iscsi_target_name }}
         iscsiadm -m discovery -t st -p {{ iscsi_host }}
         iscsiadm -m node -l -T {{ iscsi_iqn_name }}:{{ iscsi_target_name }}
         iscsiadm -m node -L automatic
 
-    - name: show info get
+    - name: ISCSI-Initiators | show info get
       shell: iscsiadm -m session -P3
       register: info
 
-    - name: show info iscsi
+    - name: ISCSI-Initiators | show info iscsi
       debug:
         msg: "{{ info.stdout_lines }}"
 

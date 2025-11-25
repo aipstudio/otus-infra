@@ -4,25 +4,25 @@
   tasks:
     - include_tasks: kernel_angie.yml
 
-    - name: copy angie repo
+    - name: ANGIE | copy repo
       copy:
         src: angie.repo
         dest: /etc/yum.repos.d/angie.repo
 
-    - name: install angie
+    - name: ANGIE | install
       yum:
         name: [ 'angie' ]
         update_cache: yes
         state: present
 
-    - name: angie delete default config
+    - name: ANGIE | delete default config
       file:
         path: /etc/angie/http.d/default.conf
         state: absent
       notify:
       - reload angie
 
-#    - name: angie config test
+#    - name: ANGIE | copy config test
 #      template:
 #        src: "{{ item.src }}"
 #        dest: "{{ item.dest }}"
@@ -32,16 +32,16 @@
 #        - src: frontend.conf
 #          dest: /etc/angie/http.d/frontend.conf.test
 
-#    - name: angie config test prepare
+#    - name: ANGIE | config test prepare
 #      replace:
 #        path: /etc/angie/angie.conf.test
 #        regexp: '.conf;$'
 #        replace: '.conf.test;'
 
-#    - name: angie config test
+#    - name: ANGIE | config test
 #      shell: angie -t -c /etc/angie/angie.conf.test
 
-    - name: angie config
+    - name: ANGIE | configure
       template:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
@@ -58,3 +58,4 @@
       systemd:
         name: angie
         state: reloaded
+        enabled: true
