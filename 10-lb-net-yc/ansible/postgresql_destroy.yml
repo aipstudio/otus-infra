@@ -1,0 +1,16 @@
+- hosts: "{{ variable_hosts | default('postgresqls') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  order: sorted
+  tasks:
+    - name: PG-etcd | stop etcd
+      systemd:
+        name: "{{ item.name }}"
+        state: "{{ item.state }}"
+      loop:
+        - name: etcd
+          state: stopped
+
+    - name: PG-etcd | delete files
+      shell: |
+        rm -rf /var/lib/etcd/*

@@ -4,7 +4,7 @@
   tasks:
     - name: PHP-FPM | epel install
       yum:
-        name: ['yum-utils', 'epel-release', 'http://rpms.remirepo.net/enterprise/remi-release-7.rpm' ]
+        name: [ 'yum-utils', 'epel-release', 'http://rpms.remirepo.net/enterprise/remi-release-7.rpm' ]
         state: latest
 
     - name: PHP-FPM | enable epel remi-php74

@@ -1,4 +1,5 @@
 resource "yandex_compute_instance" "backends" {
+  depends_on = [resource.local_file.metadata]
   name        = "backend-${count.index + 1}"
   hostname    = "backend-${count.index + 1}"
   platform_id = "standard-v1"
@@ -29,7 +30,7 @@ resource "yandex_compute_instance" "backends" {
 
   metadata = {
     serial-port-enable = local.serial-port
-    ssh-keys           = "centos:${local.ssh-pub}"
+    user-data          = "${resource.local_file.metadata.content}"
   }
 }
 

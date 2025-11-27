@@ -1,25 +1,31 @@
 variable "frontends_count" {
   description = "Number of frontends"
   type        = number
-  default     = 2
+  default     = 0
 }
 
 variable "backends_count" {
   description = "Number of backends"
   type        = number
-  default     = 2
+  default     = 0
 }
 
 variable "mysqls_count" {
   description = "Number of mysqls"
   type        = number
-  default     = 2
+  default     = 0
 }
 
 variable "postgresqls_count" {
   description = "Number of postgresqls"
   type        = number
   default     = 0
+}
+
+variable "elasticsearchs_count" {
+  description = "Number of elasticsearchs"
+  type        = number
+  default     = 3
 }
 
 variable "debian" {
@@ -90,4 +96,9 @@ variable "ssh_root_key" {
     ssh-pub            = "~/.ssh/id_rsa.pub"
     ssh-key            = "~/.ssh/id_rsa"
   }
+}
+
+variable "ssh_user" {
+  type        = string
+  default     = "ansible"
 }

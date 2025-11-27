@@ -17,9 +17,11 @@ cd ..
 #set auth password=trololo
 
 cd acls/
+{% if groups[backends] is defined and groups[backends]|length>0 %}
 {% for backend in backends -%}
 create {{ iscsi_iqn_name }}:{{ backend.name }}
 {% endfor %}
+{% endif %}
 
 saveconfig
 EOF

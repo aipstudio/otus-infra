@@ -1,0 +1,25 @@
+- hosts: "{{ variable_hosts | default('postgresqls') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  tasks:
+    - name: PG-etcd | install etcd
+      yum:
+        name: [ 'etcd' ]
+        state: latest
+
+    - name: PG-etcd | configure etcd
+      template:
+        src: "{{ item }}"
+        dest: "/etc/etcd/{{ item }}"
+      loop:
+        - etcd.conf
+      notify:
+        - restart etcd
+
+  handlers:
+    - name: restart etcd
+      systemd:
+        name: etcd
+        daemon_reload: yes
+        enabled: yes
+        state: restarted

@@ -3,6 +3,7 @@
     export TF_VAR_token=$(yc iam create-token)
     export TF_VAR_cloud_id="placeholder"
     export TF_VAR_folder_id="placeholder"
+    export TF_VAR_ssh_key=$(cat ~/.ssh/id_rsa.pub)
 
 ### terraform apply
 Время запуска - 12 минут
@@ -83,3 +84,10 @@ http://$IP/info.php - проверить работу php-fpm
 * mysql_data.yml - настройка раздела для хранения данных
 
 * mysql_proxysql.yml - настройка балансировщика для mysql
+
+* postgresql - установка postgres и patroni
+
+* postgresql_etcd - установка etcd
+
+* postgresql_haproxy - настройка балансировщика
+

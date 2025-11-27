@@ -1,3 +1,10 @@
+resource "local_file" "metadata" {
+  content = templatefile("${path.module}/metadata_base.yaml.tftpl", {
+    ssh-pub = local.ssh-pub
+  })
+  filename = "${path.module}/metadata_base.yaml"
+}
+
 resource "local_file" "ansible_hosts_bastion" {
   depends_on = [resource.yandex_compute_instance.bastion,resource.yandex_compute_instance_group.frontends,resource.yandex_compute_instance.backends]
   content = templatefile("${path.module}/ansible_hosts_bastion.tftpl", {
@@ -7,6 +14,7 @@ resource "local_file" "ansible_hosts_bastion" {
     backends = yandex_compute_instance.backends
     mysqls = yandex_compute_instance.mysqls
     postgresqls = yandex_compute_instance.postgresqls
+    elasticsearchs = yandex_compute_instance.elasticsearchs
   })
   filename = "ansible/hosts_bastion"
 }
@@ -20,6 +28,7 @@ resource "local_file" "ansible_group_vars_all" {
     backends = yandex_compute_instance.backends
     mysqls = yandex_compute_instance.mysqls
     postgresqls = yandex_compute_instance.postgresqls
+    elasticsearchs = yandex_compute_instance.elasticsearchs
     var_net_lb_mysql = var.net_lb_mysql
     var_net_lb_postgresql = var.net_lb_postgresql
   })
@@ -32,7 +41,7 @@ resource "null_resource" "ansible_provisioning_bastion" {
     inline = ["sleep 1"]
     connection {
       type        = "ssh"
-      user        = "centos"
+      user        = "${var.ssh_user}"
       host        = resource.yandex_compute_instance.bastion.network_interface.0.ip_address
       private_key = "${file(var.ssh_root_key.ssh-key)}"
       bastion_host = resource.yandex_compute_instance.bastion.network_interface.0.nat_ip_address
@@ -51,7 +60,7 @@ resource "null_resource" "ansible_provisioning_storage" {
     inline = ["sleep 1"]
     connection {
       type        = "ssh"
-      user        = "centos"
+      user        = "${var.ssh_user}"
       host        = resource.yandex_compute_instance.storage.network_interface.0.ip_address
       private_key = "${file(var.ssh_root_key.ssh-key)}"
       bastion_host = resource.yandex_compute_instance.bastion.network_interface.0.nat_ip_address
@@ -71,14 +80,14 @@ resource "null_resource" "ansible_provisioning_frontends" {
     inline = ["sleep 1"]
     connection {
       type        = "ssh"
-      user        = "centos"
+      user        = "${var.ssh_user}"
       host        = resource.yandex_compute_instance_group.frontends.instances[count.index].network_interface.0.ip_address
       private_key = "${file(var.ssh_root_key.ssh-key)}"
       bastion_host = resource.yandex_compute_instance.bastion.network_interface.0.nat_ip_address
     }
   }
   provisioner "local-exec" {
-    command     = "ansible/run_frontends.sh ${resource.yandex_compute_instance_group.frontends.instances[count.index].name}"
+    command     = "ansible/frontends.sh ${resource.yandex_compute_instance_group.frontends.instances[count.index].name}"
     working_dir = path.module
     interpreter = ["bash", "-c"]
   }
@@ -91,14 +100,14 @@ resource "null_resource" "ansible_provisioning_backends" {
     inline = ["sleep 1"]
     connection {
       type        = "ssh"
-      user        = "centos"
+      user        = "${var.ssh_user}"
       host        = resource.yandex_compute_instance.backends[count.index].network_interface.0.ip_address
       private_key = "${file(var.ssh_root_key.ssh-key)}"
       bastion_host = resource.yandex_compute_instance.bastion.network_interface.0.nat_ip_address
     }
   }
   provisioner "local-exec" {
-    command     = "ansible/run_backends.sh ${resource.yandex_compute_instance.backends[count.index].name}"
+    command     = "ansible/backends.sh ${resource.yandex_compute_instance.backends[count.index].name}"
     working_dir = path.module
     interpreter = ["bash", "-c"]
   }
@@ -111,14 +120,54 @@ resource "null_resource" "ansible_provisioning_mysqls" {
     inline = ["sleep 1"]
     connection {
       type        = "ssh"
-      user        = "centos"
+      user        = "${var.ssh_user}"
       host        = resource.yandex_compute_instance.mysqls[count.index].network_interface.0.ip_address
       private_key = "${file(var.ssh_root_key.ssh-key)}"
       bastion_host = resource.yandex_compute_instance.bastion.network_interface.0.nat_ip_address
     }
   }
   provisioner "local-exec" {
-    command     = "ansible/run_mysqls.sh ${resource.yandex_compute_instance.mysqls[count.index].name}"
+    command     = "ansible/mysqls.sh ${resource.yandex_compute_instance.mysqls[count.index].name}"
+    working_dir = path.module
+    interpreter = ["bash", "-c"]
+  }
+}
+
+resource "null_resource" "ansible_provisioning_postgresqls" {
+  depends_on = [resource.yandex_compute_instance.postgresqls,resource.local_file.ansible_hosts_bastion,resource.local_file.ansible_group_vars_all]
+  count = var.postgresqls_count
+  provisioner "remote-exec" {
+    inline = ["sleep 1"]
+    connection {
+      type        = "ssh"
+      user        = "${var.ssh_user}"
+      host        = resource.yandex_compute_instance.postgresqls[count.index].network_interface.0.ip_address
+      private_key = "${file(var.ssh_root_key.ssh-key)}"
+      bastion_host = resource.yandex_compute_instance.bastion.network_interface.0.nat_ip_address
+    }
+  }
+  provisioner "local-exec" {
+    command     = "ansible/postgresqls.sh ${resource.yandex_compute_instance.postgresqls[count.index].name}"
+    working_dir = path.module
+    interpreter = ["bash", "-c"]
+  }
+}
+
+resource "null_resource" "ansible_provisioning_elasticsearchs" {
+  depends_on = [resource.yandex_compute_instance.elasticsearchs,resource.local_file.ansible_hosts_bastion,resource.local_file.ansible_group_vars_all]
+  count = var.elasticsearchs_count
+  provisioner "remote-exec" {
+    inline = ["sleep 1"]
+    connection {
+      type        = "ssh"
+      user        = "${var.ssh_user}"
+      host        = resource.yandex_compute_instance.elasticsearchs[count.index].network_interface.0.ip_address
+      private_key = "${file(var.ssh_root_key.ssh-key)}"
+      bastion_host = resource.yandex_compute_instance.bastion.network_interface.0.nat_ip_address
+    }
+  }
+  provisioner "local-exec" {
+    command     = "ansible/elasticsearchs.sh ${resource.yandex_compute_instance.elasticsearchs[count.index].name}"
     working_dir = path.module
     interpreter = ["bash", "-c"]
   }

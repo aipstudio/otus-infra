@@ -7,5 +7,5 @@ if [[ "$1" != "" ]]; then
 fi
 
 ansible-playbook -i hosts_bastion bastion.yml
-ansible-playbook -i hosts_bastion storage.yml
+#ansible-playbook -i hosts_bastion storage.yml
 

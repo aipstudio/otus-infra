@@ -1,0 +1,71 @@
+scope: {{ patroni_scope }}
+name: {{ inventory_hostname }}
+
+restapi:
+  listen: {{ ansible_default_ipv4.address }}:8008
+  connect_address: {{ ansible_default_ipv4.address }}:8008
+
+etcd:
+  host: 127.0.0.1:2379
+
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    #primary_start_timeout: 300
+    #synchronous_mode: false
+    postgresql:
+      use_pg_rewind: true
+      pg_hba:
+      - host replication replicator 127.0.0.1/32 md5
+      - host all all 0.0.0.0/0 md5
+      #- hostssl all all 0.0.0.0/0 md5
+      #use_slots: true
+      parameters:
+        wal_level: hot_standby
+        hot_standby: "on"
+        max_connections: 100
+        max_worker_processes: 8
+        wal_keep_segments: 8
+        max_wal_senders: 10
+        max_replication_slots: 10
+        max_prepared_transactions: 0
+        max_locks_per_transaction: 64
+        wal_log_hints: "on"
+        track_commit_timestamp: "off"
+        archive_mode: "on"
+        archive_timeout: 1800s
+        archive_command: mkdir -p ../wal_archive && test ! -f ../wal_archive/%f && cp %p ../wal_archive/%f
+      recovery_conf:
+        restore_command: cp ../wal_archive/%f %p
+
+  initdb:
+  - encoding: UTF8
+  - data-checksums
+
+postgresql:
+  listen: 0.0.0.0:5432
+  connect_address: {{ ansible_default_ipv4.address }}:5432
+
+  data_dir: {{ postgresql_data_dir }}/pg
+  pgpass: /tmp/pgpass0
+  authentication:
+    replication:
+      username: replicator
+      password: {{ postgresql_replicator_pass }}
+    superuser:
+      username: postgres
+      password: {{ postgresql_postgres_pass }}
+    rewind:
+      username: rewind_user
+      password: {{ postgresql_postgres_pass }}
+  parameters:
+    unix_socket_directories: {{ postgresql_data_dir }}
+
+tags:
+    noloadbalance: false
+    clonefrom: false
+    nosync: false
+    nostream: false

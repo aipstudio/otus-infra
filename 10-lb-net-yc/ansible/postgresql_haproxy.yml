@@ -1,0 +1,58 @@
+- hosts: "{{ variable_hosts | default('postgresqls') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  tasks:
+    - name: PG-haproxy | install haproxy
+      yum:
+        name: [ 'https://github.com/philyuchkoff/HAProxy-2-RPM-builder/releases/download/2.9.9/haproxy-2.9.9-1.el7.x86_64.rpm', 'nc' ]
+        state: latest
+
+    - name: PG-haproxy | chmod dir
+      file:
+        name: "{{ item }}"
+        state: directory
+        owner: haproxy
+        group: haproxy
+        mode: '0700'
+      loop:
+        - /var/lib/haproxy
+        - /var/run/haproxy
+
+    - name: PG-haproxy | copy config
+      template:
+        src: haproxy.cfg
+        dest: /etc/haproxy/haproxy.cfg
+      notify:
+        - restart haproxy
+
+    - name: PG-haproxy | systemd config
+      template:
+        src: haproxy.service
+        dest: /usr/lib/systemd/system/haproxy.service
+      notify:
+        - restart haproxy
+
+    - name: SELinux | is disabled in config file
+      replace:
+        path: /etc/selinux/config
+        regexp: '^SELINUX=.*'
+        replace: 'SELINUX=disabled'
+
+    - name: SELinux | Force disabled
+      shell: setenforce 0
+
+    - show: PG-haproxy | get status
+      shell: 'echo "show stat" | nc -U /var/lib/haproxy/stats | cut -d "," -f 1,2,5-11,18,19,24,27,30,36,50,37,56,57,62 | column -s, -t'
+      register: haproxy_status
+      no_log: true
+
+    - show: PG-haproxy | show status
+      debug: msg="{{ harpoxy_status.stdout_lines  }}"
+
+  handlers:
+    - name: restart haproxy
+      systemd:
+        name: haproxy
+        enabled: true
+        daemon-reload: true
+        state: restarted

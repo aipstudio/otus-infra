@@ -2,6 +2,6 @@
   remote_user: "{{ remote_user }}"
   become: true
   tasks:
-    - name: show message
+    - name: JH | show message
       debug:
-        msg: "echo I'm JumpHost=)"
+        msg: "I'm JumpHost=)"

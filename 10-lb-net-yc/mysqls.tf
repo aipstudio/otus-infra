@@ -1,4 +1,5 @@
 resource "yandex_compute_instance" "mysqls" {
+  depends_on = [resource.local_file.metadata]
   name        = "mysql-${count.index + 1}"
   hostname    = "mysql-${count.index + 1}"
   platform_id = "standard-v1"
@@ -32,7 +33,7 @@ resource "yandex_compute_instance" "mysqls" {
 
   metadata = {
     serial-port-enable = local.serial-port
-    ssh-keys           = "centos:${local.ssh-pub}"
+    user-data          = "${resource.local_file.metadata.content}"
   }
 }
 
@@ -56,6 +57,7 @@ resource "yandex_lb_target_group" "load_balancer_mysql" {
 }
 
 resource "yandex_lb_network_load_balancer" "lb_net_mysql" {
+  count = var.mysqls_count !=0 ? 1 : 0
   name = "network-load-balancer-mysql-internal"
   type = "internal"
   deletion_protection = false
@@ -100,9 +102,12 @@ output "info_mysqls" {
 }
 
 output "info_load_balancer_net_mysql" {
+  depends_on = [resource.yandex_lb_network_load_balancer.lb_net_mysql]
   value = {
-    name = yandex_lb_network_load_balancer.lb_net_mysql.name
-    ip = [for listener in yandex_lb_network_load_balancer.lb_net_mysql.listener : [for internal_address_spec in listener.internal_address_spec : internal_address_spec.address ]]
-    port = [for listener in yandex_lb_network_load_balancer.lb_net_mysql.listener : listener.port ]
+    ip = var.net_lb_mysql
+    port = "6033"
+#    name = yandex_lb_network_load_balancer.lb_net_mysql.name
+#    ip = [for listener in yandex_lb_network_load_balancer.lb_net_mysql.listener : [for internal_address_spec in listener.internal_address_spec : internal_address_spec.address ]]
+#    port = [for listener in yandex_lb_network_load_balancer.lb_net_mysql.listener : listener.port ]
   }
 }

@@ -1,0 +1,19 @@
+- hosts: "{{ variable_hosts | default('elasticsearchs') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  tasks:
+    - name: ELK-elastic | add repo
+      copy:
+        src: elk.list
+        dest: /etc/apt/sources.list.d/elk.list
+
+    - name: ELK-elastic | install elastic
+      apt:
+        name: [ 'elasticsearch' ]
+        state: latest
+
+    - name: ELK-elastic | enable service
+      systemd:
+        name: elasticsearch
+        enabled: yes
+        daemon-reload: yes

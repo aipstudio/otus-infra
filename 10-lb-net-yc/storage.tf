@@ -1,6 +1,7 @@
 resource "yandex_compute_instance" "storage" {
+  depends_on = [resource.local_file.metadata]
   name        = "storage"
-  hostname        = "storage"
+  hostname    = "storage"
   platform_id = "standard-v1"
 
   resources {
@@ -33,12 +34,12 @@ resource "yandex_compute_instance" "storage" {
 
   metadata = {
     serial-port-enable = local.serial-port
-    ssh-keys           = "centos:${local.ssh-pub}"
+    user-data          = "${resource.local_file.metadata.content}"
   }
 }
 
 resource "yandex_compute_disk" "storage_disks" {
-  count = 1
+  count    = 1
   name     = "storage-disk-${count.index + 1}"
   type     = "network-hdd"
   size     = 1
@@ -48,9 +49,6 @@ resource "yandex_compute_disk" "storage_disks" {
 output "info_storage" {
   value = {
       name   = yandex_compute_instance.storage.name
-      id     = yandex_compute_instance.storage.id
-      fqdn   = yandex_compute_instance.storage.fqdn
-      ip_nat = yandex_compute_instance.storage.network_interface.0.nat_ip_address
       ip     = yandex_compute_instance.storage.network_interface.0.ip_address
   }
   description = "info"

@@ -1,4 +1,4 @@
-remote_user: centos
+remote_user: ansible
 iscsi_iqn_name: iqn.2222-12.ru.trololo
 iscsi_target_name: storage.target00
 iscsi_host: ${storage.network_interface.0.ip_address}
@@ -23,6 +23,18 @@ cms_password: "dMn3T5eXqehwOpAiNHaDa4Jhe7WHi3"
 
 ### POSTGRESQL
 patroni_cluster_lb: "${var_net_lb_postgresql}"
+patroni_scope: "patroni-cluster"
+postgresql_replicator_pass: "i6hfu3Fb58K28akjUOpP"
+postgresql_postgres_pass: "3ZsyNJmDwbxTOEA6oycy"
+postgresql_data_dir: /data
+
+### ETCD
+etcd_initial_cluster_token: "zw7A38sTGFrF7bTycjvB"
+
+### ELASTIC
+elk_user_elastic: elastic
+elk_pass_elastic: "PHcrTauR5brSxAqiKOJx"
+elasticsearch_data_dir: /data
 
 frontends:
 %{ for i,frontend in frontends.instances ~}

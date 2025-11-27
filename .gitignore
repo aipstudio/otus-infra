@@ -5,8 +5,8 @@
 # .tfstate files
 *.tfstate
 *.tfstate.*
-
 *.pem
+metadata_base.yaml
 
 # own secret vars store.
 personal.auto.tfvars

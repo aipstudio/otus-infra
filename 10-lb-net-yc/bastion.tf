@@ -1,4 +1,5 @@
 resource "yandex_compute_instance" "bastion" {
+  depends_on = [resource.local_file.metadata]
   name        = "bastion"
   hostname    = "bastion"
   platform_id = "standard-v1"
@@ -12,7 +13,7 @@ resource "yandex_compute_instance" "bastion" {
   boot_disk {
     initialize_params {
       name = "bastion-disk-oc"
-      image_id = data.yandex_compute_image.centos.image_id
+      image_id = data.yandex_compute_image.debian.image_id
     }
   }
 
@@ -27,7 +28,7 @@ resource "yandex_compute_instance" "bastion" {
 
   metadata = {
     serial-port-enable = local.serial-port
-    ssh-keys           = "centos:${local.ssh-pub}"
+    user-data          = "${resource.local_file.metadata.content}"
   }
 }
 

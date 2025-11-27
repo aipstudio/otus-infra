@@ -1,0 +1,63 @@
+- hosts: "{{ variable_hosts | default('postgresqls') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  tasks:
+    - name: PG | add repo
+      yum:
+        name: [ 'epel-release', 'https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm' ]
+        state: latest
+
+    - name: PG | install postgresql-15
+      yum:
+        name: [ 'postgresql15-server' ]
+        state: latest
+
+    - name: PG | install python
+      yum:
+        name: [ 'python3', 'python3-devel', 'python3-psycopg2', 'gcc', 'watchdog' ]
+        state: latest
+
+#    - name: PG | pip install patroni
+#      pip:
+#        name: [ 'patroni[etcd3]==3.3.8', 'psutil==6.1.1' ]
+#        state: latest
+#        executable: pip3
+
+    - name: PG | yum install patroni
+      yum:
+        name: [ 'patroni', 'python3-etcd', 'patroni-etcd' ]
+        state: latest
+
+    - name: PG | copy bash_profile root
+      template:
+        src: .bash_profile_root
+        dest: /root/.bash_profile
+
+    - name: PG | Creating patroni service
+      template:
+        src: patroni.service
+        dest: /usr/lib/systemd/system/patroni.service
+
+    - name: PG | Creating patroni config
+      template:
+        src: patroni.yml
+        dest: /etc/patroni/patroni.yml
+
+    - name: PG | chown data dir
+      file:
+        name: "{{ postgresql_data_dir }}"
+        state: directory
+        owner: postgres
+        group: postgres
+
+#    - name: PG | Creating patroni service
+#      template:
+#        src: patroni.service
+#        dest: /usr/lib/systemd/system/patroni.service
+
+    - name: PG | enable patroni service
+      systemd:
+        name: patroni
+        state: started
+        enabled: yes
+        daemon-reload: yes

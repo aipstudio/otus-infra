@@ -3,8 +3,7 @@ resource "yandex_compute_instance_group" "frontends" {
   folder_id = var.folder_id
   service_account_id = "${yandex_iam_service_account.editor_sa.id}"
   deletion_protection = false
-  depends_on = [yandex_resourcemanager_folder_iam_member.compute_editor, yandex_resourcemanager_folder_iam_member.load_balancer_editor]
-
+  depends_on = [ resource.local_file.metadata, yandex_resourcemanager_folder_iam_member.compute_editor, yandex_resourcemanager_folder_iam_member.load_balancer_editor ]
   instance_template {
     platform_id = "standard-v1"
     name = "frontend-{instance.index}"
@@ -34,7 +33,7 @@ resource "yandex_compute_instance_group" "frontends" {
 
     metadata = {
       serial-port-enable = local.serial-port
-      ssh-keys = "centos:${local.ssh-pub}"
+      user-data          = "${resource.local_file.metadata.content}"
     }
   }
 
