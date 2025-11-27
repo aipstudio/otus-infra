@@ -1,0 +1,106 @@
+- hosts: "{{ variable_hosts | default('elasticsearchs') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  vars:
+    elk_certs_gen_dir: "/etc/elasticsearch/certs_gen"
+  tasks:
+    - block:
+      - name: ELK-elastic-certs | cleaning workdir - temp
+        file:
+          path: "{{ elk_certs_gen_dir }}"
+          state: absent
+
+      - name: ELK-elastic-certs | create workdir
+        file:
+          path: "{{ elk_certs_gen_dir }}"
+          state: directory
+          group: elasticsearch
+          mode: '0750'
+
+      - name: ELK-elastic-certs | copy elastic certs template
+        template:
+          src: elasticsearch_instances.yml
+          dest: "{{ elk_certs_gen_dir }}"
+
+      - name: ELK-elastic-certs | create ca
+        shell: '/usr/share/elasticsearch/bin/elasticsearch-certutil ca --days 10000 --pass "" --out "{{ elk_certs_gen_dir }}/elastic-stack-ca.p12"'
+
+      - name: ELK-elastic-certs | get ca crt
+        shell: 'openssl pkcs12 -in "{{ elk_certs_gen_dir }}/elastic-stack-ca.p12" -out "{{ elk_certs_gen_dir }}/elastic-stack-ca.crt" -clcerts -nokeys -passin pass:'
+
+      - name: ELK-elastic-certs | create transport
+        shell: '/usr/share/elasticsearch/bin/elasticsearch-certutil cert --ca "{{ elk_certs_gen_dir }}/elastic-stack-ca.p12" --ca-pass "" --pass "" --out "{{ elk_certs_gen_dir }}/transport.p12"'
+
+      - name: ELK-elastic-certs | create self certs
+        shell: '/usr/share/elasticsearch/bin/elasticsearch-certutil cert --days 10000 --ca "{{ elk_certs_gen_dir }}/elastic-stack-ca.p12" --ca-pass "" --pass "" --in "{{ elk_certs_gen_dir }}/elasticsearch_instances.ym"l --out "{{ elk_certs_gen_dir }}/certs.zip"'
+
+      - name: ELK-elastic-certs | extract self certs
+        unarchive:
+          src: "{{ elk_certs_gen_dir }}/certs.zip"
+          dest: "{{ elk_certs_gen_dir }}"
+          remote_src: yes
+
+      - name: ELK-elastic-certs | owner
+        file:
+          path: "{{ elk_certs_gen_dir }}"
+          owner: root
+          group: elasticsearch
+          state: directory
+          recurse: yes
+
+      - name: ELK-elastic-certs | fetch certs - list files
+        find:
+          path: "{{ elk_certs_gen_dir }}"
+          patterns: "*.p12"
+          recurse: true
+        register: certs_found_files
+
+      - name: ELK-elastic-certs | fetch certs - p12
+        fetch:
+          src: "{{ item.path }}"
+          dest: "certs_elk/"
+          flat: yes
+        loop: "{{ certs_found_files.files }}"
+        when: certs_found_files.files is defined and certs_found_files.files | length > 0
+
+      - name: ELK-elastic-certs | fetch certs
+        fetch:
+          src: "{{ elk_certs_gen_dir }}/{{ item }}"
+          dest: "certs_elk/{{ item }}"
+          flat: yes
+        loop:
+          - elastic-stack-ca.crt
+
+      when: inventory_hostname == groups['elasticsearchs'][0]
+
+
+    - name: ELK-elastic-certs | cleaning pass
+      shell: |
+        echo "" | /usr/share/elasticsearch/bin/elasticsearch-keystore add -fx xpack.security.transport.ssl.keystore.secure_password
+        echo "" | /usr/share/elasticsearch/bin/elasticsearch-keystore add -fx xpack.security.transport.ssl.truststore.secure_password
+        echo "" | /usr/share/elasticsearch/bin/elasticsearch-keystore add -fx xpack.security.http.ssl.keystore.secure_password
+        echo "" | /usr/share/elasticsearch/bin/elasticsearch-keystore add -fx xpack.security.http.ssl.truststore.secure_password
+
+    - name: ELK-elastic-certs | cleaning old certs
+      file:
+        path: "/etc/elasticsearch/certs/{{ item }}"
+        state: absent
+      loop:
+        - http_ca.crt
+
+    - name: ELK-elastic-certs | push certs
+      copy:
+        src: "certs_elk/{{ item.src }}"
+        dest: "/etc/elasticsearch/certs/{{ item.dest }}"
+        owner: root
+        group: elasticsearch
+        mode: '0660'
+      loop:
+        - src: "elastic-stack-ca.p12"
+          dest: "elastic-stack-ca.p12"
+        - src: "elastic-stack-ca.crt"
+          dest: "elastic-stack-ca.crt"
+        - src: "transport.p12"
+          dest: "transport.p12"
+        - src: "{{ inventory_hostname }}.p12"
+          dest: "http.p12"

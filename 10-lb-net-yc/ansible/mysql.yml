@@ -57,7 +57,7 @@
     - name: PXC | certs fetch server,ca pem - TODO generate certs itself
       fetch:
         src: "{{ mysql_data_dir }}/{{ item }}"
-        dest: "certs/{{ item }}"
+        dest: "certs_pxc/{{ item }}"
         flat: yes
       loop:
         - ca.pem
@@ -67,7 +67,7 @@
 
     - name: PXC | certs push server,ca pem
       copy:
-        src: "certs/{{ item }}"
+        src: "certs_pxc/{{ item }}"
         dest: "/etc/mysql/certs/{{ item }}"
         owner: mysql
         group: mysql

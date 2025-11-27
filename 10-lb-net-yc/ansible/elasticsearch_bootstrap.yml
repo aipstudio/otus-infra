@@ -1,0 +1,36 @@
+- hosts: "{{ variable_hosts | default('elasticsearchs') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  tasks:
+    - name: ELK-elastic-bootstrap | copy elastic config
+      vars:
+        elk_bootstrap: "yes"
+      template:
+        src: elasticsearch.yml
+        dest: /etc/elasticsearch/elasticsearch.yml
+      when: inventory_hostname == groups['elasticsearchs'][0]
+
+    - name: ELK-elastic-bootstrap | start first node service
+      systemd:
+        name: elasticsearch
+        enabled: yes
+        state: started
+        daemon-reload: yes
+      when: inventory_hostname == groups['elasticsearchs'][0]
+
+    - name: ELK-elastic-bootstrap | start other node service
+      systemd:
+        name: elasticsearch
+        enabled: yes
+        state: started
+        daemon-reload: yes
+      when: inventory_hostname != groups['elasticsearchs'][0]
+
+    - name: ELK-elastic-status | get status
+      shell: curl -k -u elastic:{{ elk_pass_elastic }} https://127.0.0.1:9200/_cat/nodes
+      register: elk_status
+      when: inventory_hostname == groups['elasticsearchs'][0]
+
+    - name: ELK-elastic-status | show status
+      debug: msg="{{ elk_status.stdout_lines }}"
+      when: inventory_hostname == groups['elasticsearchs'][0]

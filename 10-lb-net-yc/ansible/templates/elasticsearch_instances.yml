@@ -1,0 +1,7 @@
+instances:
+{% for elasticsearch in elasticsearchs %}
+  - name: '{{ elasticsearch.name }}'
+    dns: [ 'localhost', '{{ elasticsearch.name }}' ]
+    ip: [ '127.0.0.1', '{{ elasticsearch.host }}' ]
+
+{% endfor %}

@@ -1,7 +1,7 @@
 remote_user: ansible
 iscsi_iqn_name: iqn.2222-12.ru.trololo
 iscsi_target_name: storage.target00
-iscsi_host: ${storage.network_interface.0.ip_address}
+iscsi_host: 10.0.1.17
 iscsi_disk: /dev/vdb
 multipath_disk: /dev/sda
 static_dir: /mnt/static
@@ -10,7 +10,7 @@ static_dir: /mnt/static
 pcs_hacluster_password: "ao3oosaivo8aicieng0Ozex8roo4Ua"
 
 ### MYSQL
-pxc_cluster_lb_host: "${var_net_lb_mysql}"
+pxc_cluster_lb_host: "10.0.1.50"
 pxc_cluster_lb_port: "6033"
 pxc_cluster_name: "pxc-cluster"
 pxc_root_password: "wnIAh7wOVaRZgLTqyAoBXZQfmueqBj"
@@ -22,7 +22,7 @@ cms_username: "wordpress"
 cms_password: "dMn3T5eXqehwOpAiNHaDa4Jhe7WHi3"
 
 ### POSTGRESQL
-patroni_cluster_lb: "${var_net_lb_postgresql}"
+patroni_cluster_lb: "10.0.1.51"
 patroni_scope: "patroni-cluster"
 postgresql_replicator_pass: "i6hfu3Fb58K28akjUOpP"
 postgresql_postgres_pass: "3ZsyNJmDwbxTOEA6oycy"
@@ -38,51 +38,32 @@ elk_pass_elastic: "PHcrTauR5brSxAqiKOJx"
 elk_data_dir: /data
 
 frontends:
-%{ for i,frontend in frontends.instances ~}
-  - host: ${frontend.network_interface.0.ip_address}
-    port: 80
-    name: ${frontend.name}
-%{ endfor }
+
 
 backends:
-%{ for i,backend in backends ~}
-  - host: ${backend.network_interface.0.ip_address}
-    port: 80
-    name: ${backend.name}
-%{ endfor }
+
 
 mysqls:
-%{ for i,mysql in mysqls ~}
-  - host: ${mysql.network_interface.0.ip_address}
-    port: 3306
-    name: ${mysql.name}
-%{ endfor }
+
 
 postgresqls:
-%{ for i,postgresql in postgresqls ~}
-  - host: ${postgresql.network_interface.0.ip_address}
-    port: 5432
-    name: ${postgresql.name}
-%{ endfor }
+
 
 elasticsearchs:
-%{ for i,elasticsearch in elasticsearchs ~}
-  - host: ${elasticsearch.network_interface.0.ip_address}
-    name: ${elasticsearch.name}
-%{ endfor }
+  - host: 10.0.1.27
+    name: elasticsearch-1
+  - host: 10.0.1.13
+    name: elasticsearch-2
+  - host: 10.0.1.3
+    name: elasticsearch-3
+
 
 lb_upstreams:
   - name: frontends
     servers:
-%{ for i,frontend in frontends.instances ~}
-      - host: ${frontend.network_interface.0.ip_address}
-        port: 80
-%{ endfor }
+
 
 frontend_upstreams:
   - name: backends
     servers:
-%{ for i,backend in backends ~}
-      - host: ${backend.network_interface.0.ip_address}
-        port: 8080
-%{ endfor }
+

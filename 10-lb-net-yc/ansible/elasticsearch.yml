@@ -10,10 +10,47 @@
     - name: ELK-elastic | install elastic
       apt:
         name: [ 'elasticsearch' ]
+        update_cache: yes
         state: latest
+
+    - name: ELK-elastic-certs | create workdir
+      file:
+        path: "{{ elk_data_dir }}/{{ item }}"
+        state: directory
+        owner: elasticsearch
+        group: elasticsearch
+      loop:
+        - elasticsearch
+        - elasticsearch_logs
+
+    - name: ELK-elastic | Replace pattern jms jmx
+      replace:
+        path: /etc/elasticsearch/jvm.options
+        regexp: "{{ item.regexp }}"
+        replace: "{{ item.replace }}"
+      loop:
+        - regexp: '^(.*-Xms.*)$'
+          replace: '-Xms1g'
+        - regexp: '^(.*-Xmx.*)$'
+          replace: '-Xmx1g'
+
+    - name: ELK-elastic | copy elastic config
+      template:
+        src: elasticsearch.yml
+        dest: /etc/elasticsearch/elasticsearch.yml
 
     - name: ELK-elastic | enable service
       systemd:
         name: elasticsearch
         enabled: yes
         daemon-reload: yes
+
+    - name: ELK-elastic | set user password - 1
+      shell: /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic -a -b -s
+      register: elastic_pass
+      when: inventory_hostname == groups['elasticsearchs'][0]
+
+    - name: ELK-elastic | set user password - 2
+      shell: |
+        curl -k -u elastic:"{{ elastic_pass.stdout }}" -X PUT "https://localhost:9200/_security/user/elastic/_password?pretty" -H "Content-Type: application/json" -d'{ "password" : "{{ elk_pass_elastic }}" }'
+      when: inventory_hostname == groups['elasticsearchs'][0]

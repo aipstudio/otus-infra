@@ -10,4 +10,6 @@ export ANSIBLE_FORCE_COLOR=true
 
 #ansible-playbook -i hosts_bastion elasticsearch_destroy.yml $ARGS
 #ansible-playbook -i hosts_bastion elasticsearch_data.yml $ARGS
-ansible-playbook -i hosts_bastion elasticsearch.yml $ARGS
+#ansible-playbook -i hosts_bastion elasticsearch.yml $ARGS
+#ansible-playbook -i hosts_bastion elasticsearch_certs.yml $ARGS
+ansible-playbook -i hosts_bastion elasticsearch_bootstrap.yml $ARGS

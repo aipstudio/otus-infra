@@ -12,7 +12,7 @@
 
     - name: ELK-Data | Create mount point directory
       file:
-        path: "{{ elasticsearch_data_dir }}"
+        path: "{{ elk_data_dir }}"
         state: directory
         mode: '0755'
 
@@ -23,7 +23,7 @@
 
     - name: ELK-Data | Mount the disk and add to fstab
       mount:
-        path: "{{ elasticsearch_data_dir }}"
+        path: "{{ elk_data_dir }}"
         src: "{{ data_disk_name }}"
         fstype: xfs
         state: mounted

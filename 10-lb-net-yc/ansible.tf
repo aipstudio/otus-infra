@@ -167,7 +167,7 @@ resource "null_resource" "ansible_provisioning_elasticsearchs" {
     }
   }
   provisioner "local-exec" {
-    command     = "ansible/elasticsearchs.sh ${resource.yandex_compute_instance.elasticsearchs[count.index].name}"
+    command     = "ansible/elasticsearch.sh ${resource.yandex_compute_instance.elasticsearchs[count.index].name}"
     working_dir = path.module
     interpreter = ["bash", "-c"]
   }
