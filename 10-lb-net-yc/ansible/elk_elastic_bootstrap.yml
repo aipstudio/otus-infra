@@ -18,6 +18,23 @@
         daemon-reload: yes
       when: inventory_hostname == groups['elasticsearchs'][0]
 
+    - name: ELK-elastic-bootstrap | pause (for startup java)
+      pause:
+        seconds: 10
+      when: inventory_hostname == groups['elasticsearchs'][0]
+
+    - name: ELK-elastic | set user password - 1
+      shell: /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic -a -b -s
+      register: elastic_pass
+      when: inventory_hostname == groups['elasticsearchs'][0]
+
+    - name: ELK-elastic | set user password - 2
+      shell: |
+        curl -k -u elastic:"{{ elastic_pass.stdout }}" -X PUT "https://localhost:9200/_security/user/elastic/_password?pretty" -H "Content-Type: application/json" -d'{ "password" : "{{ elk_pass_elastic }}" }'
+      when: inventory_hostname == groups['elasticsearchs'][0]
+
+
+
     - name: ELK-elastic-bootstrap | start other node service
       systemd:
         name: elasticsearch
@@ -25,6 +42,13 @@
         state: started
         daemon-reload: yes
       when: inventory_hostname != groups['elasticsearchs'][0]
+
+    - name: ELK-elastic-bootstrap | pause (for startup java)
+      pause:
+        seconds: 10
+      when: inventory_hostname != groups['elasticsearchs'][0]
+
+
 
     - name: ELK-elastic-status | get status
       shell: curl -k -u elastic:{{ elk_pass_elastic }} https://127.0.0.1:9200/_cat/nodes

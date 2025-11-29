@@ -147,7 +147,7 @@ resource "null_resource" "ansible_provisioning_postgresqls" {
     }
   }
   provisioner "local-exec" {
-    command     = "ansible/postgresqls.sh ${resource.yandex_compute_instance.postgresqls[count.index].name}"
+    command     = "ansible/postgresql.sh ${resource.yandex_compute_instance.postgresqls[count.index].name}"
     working_dir = path.module
     interpreter = ["bash", "-c"]
   }
@@ -167,7 +167,7 @@ resource "null_resource" "ansible_provisioning_elasticsearchs" {
     }
   }
   provisioner "local-exec" {
-    command     = "ansible/elasticsearch.sh ${resource.yandex_compute_instance.elasticsearchs[count.index].name}"
+    command     = "ansible/elk.sh ${resource.yandex_compute_instance.elasticsearchs[count.index].name}"
     working_dir = path.module
     interpreter = ["bash", "-c"]
   }

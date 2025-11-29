@@ -6,6 +6,6 @@ if [[ "$1" != "" ]]; then
   ARGS=-e "variable_hosts=$1"
 fi
 
-ansible-playbook -i hosts_bastion bastion.yml
-#ansible-playbook -i hosts_bastion storage.yml
+#ansible-playbook -i hosts_bastion bastion.yml
+ansible-playbook -i hosts_bastion storage.yml
 

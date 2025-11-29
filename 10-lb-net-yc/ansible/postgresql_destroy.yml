@@ -10,7 +10,11 @@
       loop:
         - name: etcd
           state: stopped
+        - name: patroni
+          state: stopped
 
     - name: PG-etcd | delete files
       shell: |
         rm -rf /var/lib/etcd/*
+        rm -rf /data/pg
+        rm -rf /data/wal_archive/*

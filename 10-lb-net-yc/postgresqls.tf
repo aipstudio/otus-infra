@@ -7,8 +7,8 @@ resource "yandex_compute_instance" "postgresqls" {
 
   resources {
     cores         = 2
-    memory        = 1
-    core_fraction = 5
+    memory        = 2
+    core_fraction = 20
   }
 
   boot_disk {

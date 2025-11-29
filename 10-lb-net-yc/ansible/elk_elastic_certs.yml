@@ -73,6 +73,10 @@
 
       when: inventory_hostname == groups['elasticsearchs'][0]
 
+    - name: ELK-elastic-certs | pause (for TF)
+      pause:
+        seconds: 120
+      when: inventory_hostname != groups['elasticsearchs'][0]
 
     - name: ELK-elastic-certs | cleaning pass
       shell: |

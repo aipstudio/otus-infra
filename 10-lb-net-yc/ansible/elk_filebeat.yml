@@ -1,0 +1,58 @@
+- hosts: "{{ variable_hosts | default('frontends,backends,postgresqls') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  tasks:
+    - name: ELK-filebeat | add repo
+      copy:
+        src: elk.list
+        dest: /etc/apt/sources.list.d/elk.list
+      when: ansible_distribution == 'Debian'
+
+    - name: ELK-filebeat | install filebeat
+      apt:
+        name: [ 'filebeat' ]
+        update_cache: yes
+        state: latest
+      when: ansible_distribution == 'Debian'
+
+    - name: ELK-filebeat | get filebeat rpm | WTF TODO
+      yum:
+        name: [ 'http://128.69.178.241:8092/filebeat-8.19.7-x86_64.rpm' ]
+        state: latest
+      when: ansible_distribution == 'CentOS'
+
+    - name: ELK-filebeat | create dir certs
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+      loop:
+        - /etc/filebeat/certs
+
+    - name: ELK-filebeat | copy ca certs for http
+      copy:
+        src: "certs_elk/{{ item }}"
+        dest: /etc/filebeat/certs
+        owner: root
+        group: root
+        mode: "0440"
+      loop:
+        - "elastic-stack-ca.crt"
+      notify:
+        - restart filebeat
+
+    - name: ELK-filebeat | copy filebeat config
+      template:
+        src: filebeat.yml
+        dest: /etc/filebeat/filebeat.yml
+      notify:
+        - restart filebeat
+
+  handlers:
+    - name: restart filebeat
+      systemd:
+        name: filebeat
+        enabled: yes
+        daemon-reload: yes
+        state: restarted

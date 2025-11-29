@@ -1,0 +1,13 @@
+- hosts: "{{ variable_hosts | default('elasticsearchs') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  tasks:
+    - name: ELK-elastic-destroy | stop service
+      systemd:
+        name: elasticsearch
+        state: stopped
+
+    - name: ELK-elastic-destroy | delete files
+      shell: |
+        rm -rf /data/elasticsearch/*
+        rm -rf /data/elasticsearch_logs/*

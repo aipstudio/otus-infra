@@ -3,7 +3,6 @@
     export TF_VAR_token=$(yc iam create-token)
     export TF_VAR_cloud_id="placeholder"
     export TF_VAR_folder_id="placeholder"
-    export TF_VAR_ssh_key=$(cat ~/.ssh/id_rsa.pub)
 
 ### terraform apply
 Время запуска - 12 минут
@@ -13,9 +12,11 @@
 
 Задание 11 - 2 фронта и 2 бэка + кластер субд mysql(PXC). При отключении любого узла - система продолжаеть работать. Роли описаны ниже (префикс: mysql*.yml)
 
-Задание 12 - в работе
+Задание 12 - DCS etcd + patoni(pg-15)
 
-Задание 14 - в работе
+Задание 14 - на серверах elasticsearch развернуты logstash а filebeat нацелены сразу на все logstash (5040 - access.log - angie, 5050 - postgresql.log)
+
+Templates, ILM подгружаются в процессе разворачивания кластера.
 
 ### Заметки
 
@@ -85,9 +86,14 @@ http://$IP/info.php - проверить работу php-fpm
 
 * mysql_proxysql.yml - настройка балансировщика для mysql
 
-* postgresql - установка postgres и patroni
+* postgresql.yml - установка postgres и patroni
 
-* postgresql_etcd - установка etcd
+* postgresql_etcd.yml - установка etcd
 
-* postgresql_haproxy - настройка балансировщика
+* postgresql_haproxy.yml - настройка балансировщика
 
+* elk_elastic.yml - установка elasticsearch
+
+* elk_elastic_certs - генерация сертификатов для кластера
+
+* elk_elastic.yml - установка logstash

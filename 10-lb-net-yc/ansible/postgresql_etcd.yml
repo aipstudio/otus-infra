@@ -6,6 +6,7 @@
       yum:
         name: [ 'etcd' ]
         state: latest
+        update_cache: yes
 
     - name: PG-etcd | configure etcd
       template:
@@ -13,11 +14,8 @@
         dest: "/etc/etcd/{{ item }}"
       loop:
         - etcd.conf
-      notify:
-        - restart etcd
 
-  handlers:
-    - name: restart etcd
+    - name: PG-etcd | restart etcd
       systemd:
         name: etcd
         daemon_reload: yes

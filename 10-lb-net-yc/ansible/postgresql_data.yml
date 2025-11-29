@@ -4,6 +4,12 @@
   vars:
     data_disk_name: /dev/vdb
   tasks:
+#    - name: PG-Data | install xfs
+#      apt:
+#        name: [ 'xfsprogs' ]
+#        state: latest
+#        update_cache: yes
+
     - name: PG-Data | Create mount point directory
       file:
         path: "{{ postgresql_data_dir }}"
@@ -14,6 +20,7 @@
       filesystem:
         fstype: xfs
         dev: "{{ data_disk_name }}"
+        #force: true
 
     - name: PG-Data | Mount the disk and add to fstab
       mount:

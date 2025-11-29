@@ -1,0 +1,17 @@
+{
+  "template": {
+    "settings": {
+      "index": {
+        "lifecycle": {
+          "name": "backend"
+        },
+        "number_of_shards": "3",
+        "number_of_replicas": "1"
+      }
+    }
+  },
+  "index_patterns": [
+    "backend-*"
+  ],
+  "composed_of": []
+}

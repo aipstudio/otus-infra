@@ -17,7 +17,7 @@ resource "yandex_compute_instance_group" "frontends" {
 
     boot_disk {
       initialize_params {
-        image_id = data.yandex_compute_image.centos.image_id
+        image_id = data.yandex_compute_image.debian.image_id
       }
     }
 

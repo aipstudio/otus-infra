@@ -6,6 +6,8 @@
 *.tfstate
 *.tfstate.*
 *.pem
+*.p12
+*.crt
 metadata_base.yaml
 
 # own secret vars store.

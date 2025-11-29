@@ -1,0 +1,87 @@
+- hosts: "{{ variable_hosts | default('elasticsearchs') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  tasks:
+    - name: ELK-logstash | add repo
+      copy:
+        src: elk.list
+        dest: /etc/apt/sources.list.d/elk.list
+
+    - name: ELK-logstash | install logstash
+      apt:
+        name: [ 'logstash' ]
+        update_cache: yes
+        state: latest
+
+    - name: ELK-logstash | create workdir
+      file:
+        path: "{{ elk_data_dir }}/{{ item }}"
+        state: directory
+        owner: logstash
+        group: logstash
+      loop:
+        - logstash
+        - logstash_logs
+
+    - name: create dir certs
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: logstash
+        group: logstash
+        mode: "0770"
+      loop:
+        - /etc/logstash/certs
+
+    - name: copy ca certs for http
+      copy:
+        src: "certs_elk/{{ item }}"
+        dest: /etc/logstash/certs
+        owner: logstash
+        group: logstash
+        mode: "0440"
+      loop:
+        - "elastic-stack-ca.crt"
+      notify:
+        - restart logstash
+
+    - name: ELK-logstash | Replace pattern jms jmx
+      replace:
+        path: /etc/logstash/jvm.options
+        regexp: "{{ item.regexp }}"
+        replace: "{{ item.replace }}"
+      loop:
+        - regexp: '^(.*-Xms.*)$'
+          replace: '-Xms1g'
+        - regexp: '^(.*-Xmx.*)$'
+          replace: '-Xmx1g'
+      notify:
+        - restart logstash
+
+    - name: ELK-logstash | copy logstash config
+      template:
+        src: logstash.yml
+        dest: /etc/logstash/logstash.yml
+      notify:
+        - restart logstash
+
+    - name: ELK-logstash |copy logstash config file
+      template:
+        src: "{{ item }}"
+        dest: /etc/logstash/conf.d/
+        owner: root
+        group: root
+      loop:
+        - "logstash_frontend.conf"
+        - "logstash_backend.conf"
+        - "logstash_postgresql.conf"
+      notify:
+        - restart logstash
+
+  handlers:
+    - name: restart logstash
+      systemd:
+        name: logstash
+        enabled: yes
+        daemon-reload: yes
+        state: restarted

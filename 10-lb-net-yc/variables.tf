@@ -1,7 +1,7 @@
 variable "frontends_count" {
   description = "Number of frontends"
   type        = number
-  default     = 0
+  default     = 1
 }
 
 variable "backends_count" {
@@ -19,7 +19,7 @@ variable "mysqls_count" {
 variable "postgresqls_count" {
   description = "Number of postgresqls"
   type        = number
-  default     = 0
+  default     = 3
 }
 
 variable "elasticsearchs_count" {

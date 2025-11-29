@@ -3,18 +3,20 @@ resource "yandex_compute_instance" "elasticsearchs" {
   name        = "elasticsearch-${count.index + 1}"
   hostname    = "elasticsearch-${count.index + 1}"
   platform_id = "standard-v1"
+  allow_stopping_for_update = true
   count       = var.elasticsearchs_count
 
   resources {
     cores         = 2
-    memory        = 2
-    core_fraction = 5
+    memory        = 4
+    core_fraction = 20
   }
 
   boot_disk {
     initialize_params {
       name = "elasticsearch-disk-oc-${count.index + 1}"
       image_id = data.yandex_compute_image.debian.image_id
+      size = 7
     }
   }
 

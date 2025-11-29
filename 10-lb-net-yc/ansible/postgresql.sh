@@ -13,3 +13,5 @@ ansible-playbook -i hosts_bastion postgresql_data.yml $ARGS
 ansible-playbook -i hosts_bastion postgresql_etcd.yml $ARGS
 ansible-playbook -i hosts_bastion postgresql.yml $ARGS
 ansible-playbook -i hosts_bastion postgresql_haproxy.yml $ARGS
+
+ansible-playbook -i hosts_bastion elk_filebeat.yml $ARGS

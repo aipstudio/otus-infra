@@ -1,0 +1,58 @@
+- hosts: "{{ variable_hosts | default('elasticsearchs') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  vars:
+    files:
+      - 'frontend'
+      - 'backend'
+      - 'postgresql'
+  tasks:
+    - block:
+      - name: ELK-elastic-configure | ILM | copy data scripts
+        template:
+          src: "elk_{{ item }}.ilm"
+          dest: "/tmp/"
+        changed_when: true
+        loop: "{{ files }}"
+        notify:
+          - apply ilm
+          - show ilm
+
+      - name: ELK-elastic-configure | TEMPLATE | copy data scripts
+        template:
+          src: "elk_{{ item }}.template"
+          dest: "/tmp/"
+        changed_when: true
+        loop: "{{ files }}"
+        notify:
+          - apply template
+          - show template
+
+      when: inventory_hostname == groups['elasticsearchs'][0]
+
+  handlers:
+    - name: apply ilm
+      shell: 'curl -k https://127.0.0.1:9200/_ilm/policy/{{ item }} -u {{ elk_user_elastic }}:{{ elk_pass_elastic }} -H "Content-Type: application/json" -X PUT -d @/tmp/elk_{{ item }}.ilm'
+      loop: "{{ files }}"
+      register: curl_result_ilm
+
+    - name: apply template
+      shell: 'curl -k https://127.0.0.1:9200/_index_template/{{ item }} -u {{ elk_user_elastic }}:{{ elk_pass_elastic }} -H "Content-Type: application/json" -X PUT -d @/tmp/elk_{{ item }}.template'
+      loop: "{{ files }}"
+      register: curl_result_template
+
+    - name: show ilm
+      debug:
+        msg: "{% set output = [] %}\
+              {% for result in curl_result_ilm.results %}\
+              {{ output.append(result.item ~ ' - ' ~ result.stdout) }}\
+              {% endfor %}\
+              {{ output }}"
+
+    - name: show template
+      debug:
+        msg: "{% set output = [] %}\
+              {% for result in curl_result_template.results %}\
+              {{ output.append(result.item ~ ' - ' ~ result.stdout) }}\
+              {% endfor %}\
+              {{ output }}"

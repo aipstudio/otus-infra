@@ -1,0 +1,20 @@
+- hosts: "{{ variable_hosts | default('elasticsearchs') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  vars:
+    - name: ELK-elastic-certs | push certs
+      copy:
+        src: "certs_elk/{{ item.src }}"
+        dest: "/etc/elasticsearch/certs/{{ item.dest }}"
+        owner: root
+        group: elasticsearch
+        mode: '0660'
+      loop:
+        - src: "elastic-stack-ca.p12"
+          dest: "elastic-stack-ca.p12"
+        - src: "elastic-stack-ca.crt"
+          dest: "elastic-stack-ca.crt"
+        - src: "transport.p12"
+          dest: "transport.p12"
+        - src: "{{ inventory_hostname }}.p12"
+          dest: "http.p12"

@@ -12,6 +12,7 @@ resource "yandex_compute_instance" "storage" {
 
   boot_disk {
     initialize_params {
+      name = "storage-disk-oc"
       image_id = data.yandex_compute_image.centos.image_id
     }
   }

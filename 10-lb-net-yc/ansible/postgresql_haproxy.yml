@@ -41,13 +41,12 @@
     - name: SELinux | Force disabled
       shell: setenforce 0
 
-    - show: PG-haproxy | get status
+    - name: PG-haproxy | get status
       shell: 'echo "show stat" | nc -U /var/lib/haproxy/stats | cut -d "," -f 1,2,5-11,18,19,24,27,30,36,50,37,56,57,62 | column -s, -t'
       register: haproxy_status
-      no_log: true
 
-    - show: PG-haproxy | show status
-      debug: msg="{{ harpoxy_status.stdout_lines  }}"
+    - name: PG-haproxy | show status
+      debug: msg="{{ haproxy_status.stdout_lines }}"
 
   handlers:
     - name: restart haproxy

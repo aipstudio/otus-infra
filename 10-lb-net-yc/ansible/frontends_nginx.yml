@@ -4,16 +4,19 @@
   tasks:
     - include_tasks: kernel_angie.yml
 
-    - name: ANGIE | copy repo
+    - name: ANGIE | repo add gpg
+      shell: curl -o /etc/apt/trusted.gpg.d/angie-signing.gpg https://angie.software/keys/angie-signing.gpg
+
+    - name: ANGIE | repo copy
       copy:
-        src: angie.repo
-        dest: /etc/yum.repos.d/angie.repo
+        src: angie.list
+        dest: /etc/apt/sources.list.d/angie.list
 
     - name: ANGIE | install
-      yum:
+      apt:
         name: [ 'angie' ]
         update_cache: yes
-        state: present
+        state: latest
 
     - name: ANGIE | delete default config
       file:
@@ -21,25 +24,6 @@
         state: absent
       notify:
       - reload angie
-
-#    - name: ANGIE | copy config test
-#      template:
-#        src: "{{ item.src }}"
-#        dest: "{{ item.dest }}"
-#      loop:
-#        - src: frontend.angie.conf
-#          dest: /etc/angie/angie.conf.test
-#        - src: frontend.conf
-#          dest: /etc/angie/http.d/frontend.conf.test
-
-#    - name: ANGIE | config test prepare
-#      replace:
-#        path: /etc/angie/angie.conf.test
-#        regexp: '.conf;$'
-#        replace: '.conf.test;'
-
-#    - name: ANGIE | config test
-#      shell: angie -t -c /etc/angie/angie.conf.test
 
     - name: ANGIE | configure
       template:

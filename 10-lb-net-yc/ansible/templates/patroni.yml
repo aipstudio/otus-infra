@@ -19,6 +19,7 @@ bootstrap:
     postgresql:
       use_pg_rewind: true
       pg_hba:
+      - host replication replicator 10.0.1.0/24 md5
       - host replication replicator 127.0.0.1/32 md5
       - host all all 0.0.0.0/0 md5
       #- hostssl all all 0.0.0.0/0 md5
@@ -35,22 +36,39 @@ bootstrap:
         max_locks_per_transaction: 64
         wal_log_hints: "on"
         track_commit_timestamp: "off"
-        archive_mode: "on"
-        archive_timeout: 1800s
-        archive_command: mkdir -p ../wal_archive && test ! -f ../wal_archive/%f && cp %p ../wal_archive/%f
-      recovery_conf:
-        restore_command: cp ../wal_archive/%f %p
+        logging_collector: "on"
+        log_destination: "stderr"
+        log_directory: "log"
+        log_filename: 'postgresql-%a.log'
+        log_truncate_on_rotation: on
+        log_rotation_age: "1d"
+        log_rotation_size: 0
+        log_autovacuum_min_duration: 0
+        log_checkpoints: "on"
+        log_min_duration_statement: 30s
+        log_replication_commands: "on"
+        log_lock_waits: "on"
+        log_line_prefix: "%m [%p]: [%l-1] db=%d,user=%u,app=%a,client=%h "
+        log_statement: "ddl"
+        #archive_mode: "on"
+        #archive_timeout: 1800s
+        #archive_command: mkdir -p {{ postgresql_data_dir }}/wal_archive && test ! -f {{ postgresql_data_dir }}/wal_archive/%f && cp %p {{ postgresql_data_dir }}/wal_archive/%f
+      #recovery_conf:
+        #restore_command: cp {{ postgresql_data_dir }}/wal_archive/%f %p
 
   initdb:
   - encoding: UTF8
   - data-checksums
+#  - auth-host=scram-sha-256
 
 postgresql:
   listen: 0.0.0.0:5432
   connect_address: {{ ansible_default_ipv4.address }}:5432
 
   data_dir: {{ postgresql_data_dir }}/pg
-  pgpass: /tmp/pgpass0
+  bin_dir: /usr/pgsql-15/bin/
+
+  pgpass: /data/pgpass0
   authentication:
     replication:
       username: replicator
