@@ -75,3 +75,11 @@
         state: started
         enabled: yes
         daemon-reload: yes
+
+    - name: PG | get cluster status
+      shell: "/bin/patronictl -c /etc/patroni/patroni.yml list"
+      register: node_status
+
+    - name: PG | show cluster status
+      debug:
+        msg: "{{ node_status.stdout_lines }}"

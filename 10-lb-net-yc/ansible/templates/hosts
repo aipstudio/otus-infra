@@ -1,7 +1,0 @@
-{% for mysql in mysqls %}
-{{ mysql.host }} {{ mysql.name }}
-{% endfor %}
-
-{% for backend in backends %}
-{{ backend.host }} {{ backend.name }}
-{% endfor %}

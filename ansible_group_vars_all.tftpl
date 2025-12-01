@@ -9,6 +9,12 @@ static_dir: /mnt/static
 ### PCS
 pcs_hacluster_password: "ao3oosaivo8aicieng0Ozex8roo4Ua"
 
+### CMS
+cms_name: "joomla"
+cms_database: "joomla"
+cms_username: "joomla"
+cms_password: "dMn3T5eXqehwOpAiNHaDa4Jhe7WHi3"
+
 ### MYSQL
 pxc_cluster_lb_host: "${var_net_lb_mysql}"
 pxc_cluster_lb_port: "6033"
@@ -16,13 +22,10 @@ pxc_cluster_name: "pxc-cluster"
 pxc_root_password: "wnIAh7wOVaRZgLTqyAoBXZQfmueqBj"
 pxc_proxysql_username: "proxysql"
 pxc_proxysql_password: "mrBq2lYaboSDXhNcRfNqfA2auM3jmz"
-cms_name: "wordpress"
-cms_database: "wordpress"
-cms_username: "wordpress"
-cms_password: "dMn3T5eXqehwOpAiNHaDa4Jhe7WHi3"
 
 ### POSTGRESQL
-patroni_cluster_lb: "${var_net_lb_postgresql}"
+postgresql_cluster_lb_host: "${var_net_lb_postgresql}"
+postgresql_cluster_lb_port: "9999"
 patroni_scope: "patroni-cluster"
 postgresql_replicator_pass: "i6hfu3Fb58K28akjUOpP"
 postgresql_postgres_pass: "3ZsyNJmDwbxTOEA6oycy"

@@ -7,12 +7,12 @@
         name: [ 'yum-utils', 'epel-release', 'http://rpms.remirepo.net/enterprise/remi-release-7.rpm' ]
         state: latest
 
-    - name: PHP-FPM | enable epel remi-php74
-      shell: yum-config-manager --enable remi-php74
+    - name: PHP-FPM | enable epel remi-php83
+      shell: yum-config-manager --enable remi-php83
 
     - name: PHP-FPM | php-fpm install
       yum:
-        name: [ 'php-fpm', 'php', 'php-ZendFramework-Db-Adapter-Mysqli' ]
+        name: [ 'php-fpm', 'php', 'php-pgsql' ]
         state: latest
 
     - name: PHP-FPM | Replace pattern php-fpm

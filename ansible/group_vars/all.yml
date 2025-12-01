@@ -1,0 +1,101 @@
+remote_user: ansible
+iscsi_iqn_name: iqn.2222-12.ru.trololo
+iscsi_target_name: storage.target00
+iscsi_host: 10.0.1.35
+iscsi_disk: /dev/vdb
+multipath_disk: /dev/sda
+static_dir: /mnt/static
+
+### PCS
+pcs_hacluster_password: "ao3oosaivo8aicieng0Ozex8roo4Ua"
+
+### CMS
+cms_name: "joomla"
+cms_database: "joomla"
+cms_username: "joomla"
+cms_password: "dMn3T5eXqehwOpAiNHaDa4Jhe7WHi3"
+
+### MYSQL
+pxc_cluster_lb_host: "10.0.1.50"
+pxc_cluster_lb_port: "6033"
+pxc_cluster_name: "pxc-cluster"
+pxc_root_password: "wnIAh7wOVaRZgLTqyAoBXZQfmueqBj"
+pxc_proxysql_username: "proxysql"
+pxc_proxysql_password: "mrBq2lYaboSDXhNcRfNqfA2auM3jmz"
+
+### POSTGRESQL
+postgresql_cluster_lb_host: "10.0.1.51"
+postgresql_cluster_lb_port: "9999"
+patroni_scope: "patroni-cluster"
+postgresql_replicator_pass: "i6hfu3Fb58K28akjUOpP"
+postgresql_postgres_pass: "3ZsyNJmDwbxTOEA6oycy"
+postgresql_data_dir: /data
+
+### ETCD
+etcd_initial_cluster_token: "zw7A38sTGFrF7bTycjvB"
+
+### ELASTIC
+elk_cluster_name: elasticsearch-cluster
+elk_user_elastic: elastic
+elk_pass_elastic: "PHcrTauR5brSxAqiKOJx"
+elk_data_dir: /data
+
+frontends:
+  - host: 10.0.1.21
+    port: 80
+    name: frontend-1
+  - host: 10.0.1.16
+    port: 80
+    name: frontend-2
+
+
+backends:
+  - host: 10.0.1.14
+    port: 80
+    name: backend-1
+  - host: 10.0.1.30
+    port: 80
+    name: backend-2
+
+
+mysqls:
+
+
+postgresqls:
+  - host: 10.0.1.10
+    port: 5432
+    name: postgresql-1
+  - host: 10.0.1.11
+    port: 5432
+    name: postgresql-2
+  - host: 10.0.1.33
+    port: 5432
+    name: postgresql-3
+
+
+elasticsearchs:
+  - host: 10.0.1.15
+    name: elasticsearch-1
+  - host: 10.0.1.8
+    name: elasticsearch-2
+  - host: 10.0.1.17
+    name: elasticsearch-3
+
+
+lb_upstreams:
+  - name: frontends
+    servers:
+      - host: 10.0.1.21
+        port: 80
+      - host: 10.0.1.16
+        port: 80
+
+
+frontend_upstreams:
+  - name: backends
+    servers:
+      - host: 10.0.1.14
+        port: 8080
+      - host: 10.0.1.30
+        port: 8080
+

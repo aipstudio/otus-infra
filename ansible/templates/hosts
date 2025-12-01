@@ -1,0 +1,11 @@
+{% if groups['mysqls'] is defined and groups['mysqls']|length>0 %}
+{% for mysql in mysqls %}
+{{ mysql.host }} {{ mysql.name }}
+{% endfor %}
+{% endif %}
+
+{% if groups['backends'] is defined and groups['backends']|length>0 %}
+{% for backend in backends %}
+{{ backend.host }} {{ backend.name }}
+{% endfor %}
+{% endif %}

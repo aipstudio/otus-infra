@@ -2,9 +2,10 @@
   remote_user: "{{ remote_user }}"
   become: true
   tasks:
-    - name: PG-haproxy | install haproxy
+    - name: PG-haproxy | install haproxy TODO
       yum:
-        name: [ 'https://github.com/philyuchkoff/HAProxy-2-RPM-builder/releases/download/2.9.9/haproxy-2.9.9-1.el7.x86_64.rpm', 'nc' ]
+        name: [ 'http://128.69.178.241:8092/haproxy-2.9.9-1.el7.x86_64.rpm', 'nc' ]
+        #name: [ 'https://github.com/philyuchkoff/HAProxy-2-RPM-builder/releases/download/2.9.9/haproxy-2.9.9-1.el7.x86_64.rpm', 'nc' ]
         state: latest
 
     - name: PG-haproxy | chmod dir

@@ -1,0 +1,62 @@
+- hosts: "{{ variable_hosts | default('backends') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  vars:
+    joomla_name: Joomla_6.0.1-Stable-Full_Package.zip
+  tasks:
+    - name: CMS-Joomla | install unzip
+      yum:
+        name: [ 'unzip' ]
+        state: latest
+
+    - block:
+      - name: CMS-Joomla | chmod dir
+        file:
+          name: "{{ static_dir }}/{{ cms_name }}"
+          state: directory
+          owner: angie
+          group: angie
+
+      - name: CMS-Joomla | Get file status
+        stat:
+          path: "{{ static_dir }}/{{ joomla_name }}"
+        register: joomla_latest_file
+
+      - name: CMS-Joomla | get zip
+        get_url:
+          url: "http://128.69.178.241:8092/{{ joomla_name }}"
+          dest: "{{ static_dir }}"
+        when: not joomla_latest_file.stat.exists
+
+      - name: CMS-Joomla | unarchive a file
+        unarchive:
+          src: "{{ static_dir }}/{{ joomla_name }}"
+          dest: "{{ static_dir }}/joomla"
+          remote_src: yes
+        when: not joomla_latest_file.stat.exists
+
+      - name: CMS-Joomla | copy bootstrap config
+        template:
+          src: "{{ item }}"
+          dest: "{{ static_dir }}/{{ cms_name }}"
+        loop:
+          - info.php
+
+      - name: CMS-Joomla | owner to angie from {{ static_dir }}/{{ cms_name }}
+        file:
+          path: "{{ static_dir }}/{{ cms_name }}"
+          owner: angie
+          group: angie
+          state: directory
+          recurse: yes
+          mode: '0755'
+
+      - name: CMS-Joomla | owner to angie
+        file:
+          path: "/var/lib/php"
+          owner: root
+          group: angie
+          state: directory
+          recurse: yes
+
+      when: inventory_hostname == groups['backends'][0]

@@ -1,0 +1,30 @@
+- hosts: "{{ variable_hosts | default('postgresqls') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  tasks:
+    - name: PG-config | Check Patroni status
+      uri:
+        url: http://{{ ansible_default_ipv4.address }}:8008/patroni
+        return_content: yes
+      register: patroni_status
+      ignore_errors: yes
+
+    - name: PG-config | set fact patroni_role
+      set_fact:
+        patroni_role: "{{ patroni_status | json_query('json.role') }}"
+
+    - name: PG-config | Copy postgres sql scripts
+      template:
+        src: "{{ item }}"
+        dest: /tmp
+      loop:
+        - pg_cms.sql
+      when: patroni_role == "master"
+
+    - name: PG-config | Run script to create role
+      environment:
+        PGPASSWORD: "{{ postgresql_postgres_pass }}"
+        PATH: "$PATH:/usr/pgsql-15/bin"
+      shell: |
+        psql -U postgres -h localhost < /tmp/pg_cms.sql
+      when: patroni_role == "master"

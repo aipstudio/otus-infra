@@ -29,7 +29,7 @@ define( 'DB_USER', '{{ cms_username }}' );
 define( 'DB_PASSWORD', '{{ cms_password }}' );
 
 /** Database hostname */
-define( 'DB_HOST', '{{ pxc_cluster_lb_host }}:{{ pxc_cluster_lb_port }}' );
+define( 'DB_HOST', '{{ postgresql_cluster_lb_host }}:{{ postgresql_cluster_lb_port }}' );
 
 /** Database charset to use in creating database tables. */
 define( 'DB_CHARSET', 'utf8' );

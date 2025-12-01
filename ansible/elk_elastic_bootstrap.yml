@@ -23,12 +23,12 @@
         seconds: 10
       when: inventory_hostname == groups['elasticsearchs'][0]
 
-    - name: ELK-elastic | set user password - 1
+    - name: ELK-elastic-bootstrap | set user password - 1
       shell: /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic -a -b -s
       register: elastic_pass
       when: inventory_hostname == groups['elasticsearchs'][0]
 
-    - name: ELK-elastic | set user password - 2
+    - name: ELK-elastic-bootstrap | set user password - 2
       shell: |
         curl -k -u elastic:"{{ elastic_pass.stdout }}" -X PUT "https://localhost:9200/_security/user/elastic/_password?pretty" -H "Content-Type: application/json" -d'{ "password" : "{{ elk_pass_elastic }}" }'
       when: inventory_hostname == groups['elasticsearchs'][0]
@@ -46,15 +46,14 @@
     - name: ELK-elastic-bootstrap | pause (for startup java)
       pause:
         seconds: 10
-      when: inventory_hostname != groups['elasticsearchs'][0]
 
 
 
-    - name: ELK-elastic-status | get status
+    - name: ELK-elastic-bootstrap-status | get status
       shell: curl -k -u elastic:{{ elk_pass_elastic }} https://127.0.0.1:9200/_cat/nodes
       register: elk_status
       when: inventory_hostname == groups['elasticsearchs'][0]
 
-    - name: ELK-elastic-status | show status
+    - name: ELK-elastic-bootstrap-status | show status
       debug: msg="{{ elk_status.stdout_lines }}"
       when: inventory_hostname == groups['elasticsearchs'][0]

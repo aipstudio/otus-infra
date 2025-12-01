@@ -31,7 +31,7 @@ filebeat.inputs:
   paths:
 {% if "frontend" in inventory_hostname %}
     - /var/log/angie/access.log
-{% if "backend" in inventory_hostname %}
+{% elif "backend" in inventory_hostname %}
     - /var/log/angie/access.log
 {% elif "postgresql" in inventory_hostname %}
     - /data/pg/log/*.log

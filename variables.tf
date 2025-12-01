@@ -1,13 +1,14 @@
 variable "frontends_count" {
   description = "Number of frontends"
   type        = number
-  default     = 1
+  default     = 2
 }
 
+# >=2
 variable "backends_count" {
   description = "Number of backends"
   type        = number
-  default     = 0
+  default     = 2
 }
 
 variable "mysqls_count" {
