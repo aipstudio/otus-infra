@@ -12,7 +12,7 @@
 
     - name: PHP-FPM | php-fpm install
       yum:
-        name: [ 'php-fpm', 'php', 'php-pgsql' ]
+        name: [ 'php-fpm', 'php', 'php-pgsql', 'php-xml', 'php-zip', 'php-intl', 'php-gd', 'php-json', 'php-mbstring', 'php-opcache' ]
         state: latest
 
     - name: PHP-FPM | Replace pattern php-fpm
@@ -38,6 +38,14 @@
           replace: 'cgi.fix_pathinfo=0'
       notify:
         - restart php-fpm
+
+     - name: PHP-FPM | owner to angie
+      file:
+        path: "/var/lib/php"
+        owner: root
+        group: angie
+        state: directory
+        recurse: yes
 
   handlers:
     - name: restart php-fpm

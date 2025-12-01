@@ -9,6 +9,14 @@
         name: [ 'unzip' ]
         state: latest
 
+      - name: CMS-Joomla | owner to angie
+        file:
+          path: "/var/lib/php"
+          owner: root
+          group: angie
+          state: directory
+          recurse: yes
+
     - block:
       - name: CMS-Joomla | chmod dir
         file:
@@ -50,13 +58,5 @@
           state: directory
           recurse: yes
           mode: '0755'
-
-      - name: CMS-Joomla | owner to angie
-        file:
-          path: "/var/lib/php"
-          owner: root
-          group: angie
-          state: directory
-          recurse: yes
 
       when: inventory_hostname == groups['backends'][0]
