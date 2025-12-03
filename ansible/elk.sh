@@ -17,4 +17,6 @@ ansible-playbook -i hosts_bastion elk_elastic_configure.yml $ARGS
 
 ansible-playbook -i hosts_bastion elk_logstash.yml $ARGS
 
+ansible-playbook -i hosts_bastion elk_kibana.yml $ARGS
+
 #ansible-playbook -i hosts_bastion elk_filebeat.yml $ARGS

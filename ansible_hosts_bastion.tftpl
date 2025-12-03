@@ -41,3 +41,10 @@ ${elasticsearch.name} ansible_host=${elasticsearch.network_interface.0.ip_addres
 %{ endfor ~}
 
 [elasticsearchs:vars]
+
+[kafkas]
+%{ for i,kafka in kafkas ~}
+${kafka.name} ansible_host=${kafka.network_interface.0.ip_address} id=${i+1}
+%{ endfor ~}
+
+[kafkas:vars]

@@ -39,7 +39,7 @@
       notify:
         - restart php-fpm
 
-     - name: PHP-FPM | owner to angie
+    - name: PHP-FPM | owner to angie
       file:
         path: "/var/lib/php"
         owner: root

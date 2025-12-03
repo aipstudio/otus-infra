@@ -1,27 +1,27 @@
-resource "yandex_compute_instance" "elasticsearchs" {
+resource "yandex_compute_instance" "kafkas" {
   depends_on = [resource.local_file.metadata]
-  name        = "elasticsearch-${count.index + 1}"
-  hostname    = "elasticsearch-${count.index + 1}"
+  name        = "kafka-${count.index + 1}"
+  hostname    = "kafka-${count.index + 1}"
   platform_id = "standard-v1"
   allow_stopping_for_update = true
-  count       = var.elasticsearchs_count
+  count       = var.kafkas_count
 
   resources {
     cores         = 2
-    memory        = 4
-    core_fraction = 20
+    memory        = 2
+    core_fraction = 5
   }
 
   boot_disk {
     initialize_params {
-      name = "elasticsearch-disk-oc-${count.index + 1}"
+      name = "kafka-disk-oc-${count.index + 1}"
       image_id = data.yandex_compute_image.debian.image_id
       size = 10
     }
   }
 
   secondary_disk {
-    disk_id = yandex_compute_disk.elasticsearch_disks[count.index].id
+    disk_id = yandex_compute_disk.kafka_disks[count.index].id
   }
 
   scheduling_policy {
@@ -39,17 +39,17 @@ resource "yandex_compute_instance" "elasticsearchs" {
   }
 }
 
-resource "yandex_compute_disk" "elasticsearch_disks" {
-  count = var.elasticsearchs_count
-  name  = "elasticsearch-disk-${count.index + 1}"
+resource "yandex_compute_disk" "kafka_disks" {
+  count = var.kafkas_count
+  name  = "kafka-disk-${count.index + 1}"
   type  = "network-hdd"
   size  = 1
   zone  = var.default_zone
 }
 
-output "info_elasticsearchs" {
+output "info_kafkas" {
   value = [
-    for i in yandex_compute_instance.elasticsearchs:
+    for i in yandex_compute_instance.kafkas:
     {
       name   = i.name
       ip     = i.network_interface.0.ip_address

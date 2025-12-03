@@ -15,6 +15,7 @@ resource "local_file" "ansible_hosts_bastion" {
     mysqls = yandex_compute_instance.mysqls
     postgresqls = yandex_compute_instance.postgresqls
     elasticsearchs = yandex_compute_instance.elasticsearchs
+    kafkas = yandex_compute_instance.kafkas
   })
   filename = "ansible/hosts_bastion"
 }
@@ -29,6 +30,7 @@ resource "local_file" "ansible_group_vars_all" {
     mysqls = yandex_compute_instance.mysqls
     postgresqls = yandex_compute_instance.postgresqls
     elasticsearchs = yandex_compute_instance.elasticsearchs
+    kafkas = yandex_compute_instance.kafkas
     var_net_lb_mysql = var.net_lb_mysql
     var_net_lb_postgresql = var.net_lb_postgresql
   })
@@ -168,6 +170,26 @@ resource "null_resource" "ansible_provisioning_elasticsearchs" {
   }
   provisioner "local-exec" {
     command     = "ansible/elk.sh ${resource.yandex_compute_instance.elasticsearchs[count.index].name}"
+    working_dir = path.module
+    interpreter = ["bash", "-c"]
+  }
+}
+
+resource "null_resource" "ansible_provisioning_kafkas" {
+  depends_on = [resource.yandex_compute_instance.kafkas,resource.local_file.ansible_hosts_bastion,resource.local_file.ansible_group_vars_all]
+  count = var.kafkas_count
+  provisioner "remote-exec" {
+    inline = ["sleep 1"]
+    connection {
+      type        = "ssh"
+      user        = "${var.ssh_user}"
+      host        = resource.yandex_compute_instance.kafkas[count.index].network_interface.0.ip_address
+      private_key = "${file(var.ssh_root_key.ssh-key)}"
+      bastion_host = resource.yandex_compute_instance.bastion.network_interface.0.nat_ip_address
+    }
+  }
+  provisioner "local-exec" {
+    command     = "ansible/kafka.sh ${resource.yandex_compute_instance.kafkas[count.index].name}"
     working_dir = path.module
     interpreter = ["bash", "-c"]
   }

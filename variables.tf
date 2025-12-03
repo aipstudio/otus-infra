@@ -1,7 +1,7 @@
 variable "frontends_count" {
   description = "Number of frontends"
   type        = number
-  default     = 2
+  default     = 1
 }
 
 # >=2
@@ -20,11 +20,17 @@ variable "mysqls_count" {
 variable "postgresqls_count" {
   description = "Number of postgresqls"
   type        = number
-  default     = 3
+  default     = 2
 }
 
 variable "elasticsearchs_count" {
   description = "Number of elasticsearchs"
+  type        = number
+  default     = 3
+}
+
+variable "kafkas_count" {
+  description = "Number of kafkas"
   type        = number
   default     = 3
 }

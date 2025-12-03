@@ -1,0 +1,30 @@
+- hosts: "{{ variable_hosts | default('kafkas') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  vars:
+    data_disk_name: /dev/vdb
+  tasks:
+    - name: KAFKA-Data | install xfs
+      apt:
+        name: [ 'xfsprogs' ]
+        state: latest
+        update_cache: yes
+
+    - name: KAFKA-Data | Create mount point directory
+      file:
+        path: "{{ kafka_data_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: KAFKA-Data | Format the disk with ext4 filesystem
+      filesystem:
+        fstype: xfs
+        dev: "{{ data_disk_name }}"
+
+    - name: KAFKA-Data | Mount the disk and add to fstab
+      mount:
+        path: "{{ kafka_data_dir }}"
+        src: "{{ data_disk_name }}"
+        fstype: xfs
+        state: mounted
+        opts: defaults

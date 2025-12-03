@@ -1,0 +1,149 @@
+- hosts: "{{ variable_hosts | default('kafkas') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  vars:
+    kafka_version: kafka_2.13-3.9.1
+    libzstd_so_file: libzstd-jni-1.5.6-4.so
+  tasks:
+    - name: KAFKA | install java
+      apt:
+        name: [ 'openjdk-17-jre' ]
+        update_cache: yes
+        state: latest
+
+    - name: KAFKA | create user
+      user:
+        name: kafka
+
+    - name: KAFKA | create dir /data
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: kafka
+        group: kafka
+      loop:
+        - /data/kafka-controller
+        - /data/kafka-broker
+
+#    - shell: |
+#        rm -rf /opt/{{ kafka_version }}.tgz
+#        rm -rf /opt/{{ kafka_version }}
+#        rm -rf /opt/kafka
+
+    - name: KAFKA | get tar
+      get_url:
+        url: "https://dlcdn.apache.org/kafka/3.9.1/{{ kafka_version }}.tgz"
+        dest: "/opt/{{ kafka_version }}.tgz"
+        validate_certs: false
+
+    - name: KAFKA | Get file status (download already?)
+      stat:
+        path: "/opt/kafka/config/kraft/broker.properties"
+      register: kafka_latest_file
+
+    - name: KAFKA | unarchive a file
+      unarchive:
+        src: "/opt/{{ kafka_version }}.tgz"
+        dest: "/opt/"
+        remote_src: yes
+      when: not kafka_latest_file.stat.exists
+
+    - name: KAFKA | create symbol link
+      file:
+        src: "/opt/{{ kafka_version }}"
+        dest: "/opt/kafka"
+        state: link
+        owner: kafka
+        group: kafka
+
+    - name: KAFKA | owner to bin_dir
+      file:
+        path: "/opt/kafka"
+        owner: kafka
+        group: kafka
+        state: directory
+        recurse: yes
+
+
+
+    - name: KAFKA | copy service kafka
+      template:
+        src: "{{ item }}"
+        dest: "/usr/lib/systemd/system/{{ item }}"
+      loop:
+        - kafka-broker.service
+        - kafka-controller.service
+      notify:
+        - restart kafka-broker
+        - restart kafka-controller
+
+    - name: KAFKA | copy config kafka
+      template:
+        src: "{{ item }}"
+        dest: "/opt/kafka/config/kraft/{{ item }}"
+      loop:
+        - controller.properties
+        - broker.properties
+      notify:
+        - restart kafka-broker
+        - restart kafka-controller
+
+    - name: KAFKA | enable service
+      systemd:
+        name: "{{ item }}"
+        daemon-reload: yes
+        enabled: yes
+      loop:
+        - kafka-broker.service
+        - kafka-controller.service
+
+
+
+    - name: KAFKA | Get file status (controller storage)
+      stat:
+        path: "/data/kafka-controller/meta.properties"
+      register: kafka_controller_storage_file
+
+    - name: KAFKA | Get file status (broker storage)
+      stat:
+        path: "/data/kafka-broker/meta.properties"
+      register: kafka_broker_storage_file
+
+    - name: KAFKA | broker | create storage dir
+      shell: /opt/kafka/bin/kafka-storage.sh format -t {{ kafka_cluster_id }} -c /opt/kafka/config/kraft/broker.properties
+      when: not kafka_broker_storage_file.stat.exists
+
+    - name: KAFKA | controller | create storage dir
+      shell: /opt/kafka/bin/kafka-storage.sh format -t {{ kafka_cluster_id }} -c /opt/kafka/config/kraft/controller.properties
+      when: not kafka_controller_storage_file.stat.exists
+
+    - name: KAFKA | owner storage file
+      file:
+        path: "{{ item }}"
+        owner: kafka
+        group: kafka
+      loop:
+        - /data/kafka-broker/meta.properties
+        - /data/kafka-broker/bootstrap.checkpoint
+        - /data/kafka-controller/meta.properties
+        - /data/kafka-controller/bootstrap.checkpoint
+
+
+  handlers:
+    - name: restart kafka-controller
+      systemd:
+        name: "{{ item }}"
+        daemon-reload: yes
+        enabled: yes
+        state: restarted
+      loop:
+        - kafka-controller.service
+
+    - name: restart kafka-broker
+      systemd:
+        name: "{{ item }}"
+        daemon-reload: yes
+        enabled: yes
+        state: restarted
+      loop:
+        - kafka-broker.service

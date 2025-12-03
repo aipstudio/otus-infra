@@ -33,6 +33,11 @@
         curl -k -u elastic:"{{ elastic_pass.stdout }}" -X PUT "https://localhost:9200/_security/user/elastic/_password?pretty" -H "Content-Type: application/json" -d'{ "password" : "{{ elk_pass_elastic }}" }'
       when: inventory_hostname == groups['elasticsearchs'][0]
 
+    - name: ELK-elastic-bootstrap | set user password - 3
+      shell: |
+        curl -k -u elastic:"{{ elk_pass_elastic }}" -X PUT "https://localhost:9200/_security/user/{{ elk_user_kibana }}/_password?pretty" -H "Content-Type: application/json" -d'{ "password" : "{{ elk_pass_kibana }}" }'
+      when: inventory_hostname == groups['elasticsearchs'][0]
+
 
 
     - name: ELK-elastic-bootstrap | start other node service

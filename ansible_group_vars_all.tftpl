@@ -38,7 +38,13 @@ etcd_initial_cluster_token: "zw7A38sTGFrF7bTycjvB"
 elk_cluster_name: elasticsearch-cluster
 elk_user_elastic: elastic
 elk_pass_elastic: "PHcrTauR5brSxAqiKOJx"
+elk_user_kibana: kibana_system
+elk_pass_kibana: "5DeBL6v9LtYcP6NgqwDh"
 elk_data_dir: /data
+
+### KAFKA
+kafka_cluster_id: bWljscJ9SrKm7SMCGGUwtw
+kafka_data_dir: /data
 
 frontends:
 %{ for i,frontend in frontends.instances ~}
@@ -72,6 +78,13 @@ elasticsearchs:
 %{ for i,elasticsearch in elasticsearchs ~}
   - host: ${elasticsearch.network_interface.0.ip_address}
     name: ${elasticsearch.name}
+%{ endfor }
+
+kafkas:
+%{ for i,kafka in kafkas ~}
+  - host: ${kafka.network_interface.0.ip_address}
+    id: ${i + 1}
+    name: ${kafka.name}
 %{ endfor }
 
 lb_upstreams:

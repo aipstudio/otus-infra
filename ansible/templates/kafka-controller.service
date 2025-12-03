@@ -1,0 +1,16 @@
+[Unit]
+Description=Kafka Service Controller
+
+[Service]
+LimitNPROC=400000
+LimitNOFILE=400000
+#Environment="KAFKA_OPTS=-Djava.security.auth.login.config=/opt/kafka/jaas-kafka-server.conf"
+Environment="KAFKA_HEAP_OPTS=-Xms512m -Xmx512m"
+Type=simple
+User=kafka
+Group=kafka
+ExecStart=/opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/kraft/controller.properties
+Restart=on-abnormal
+
+[Install]
+WantedBy=multi-user.target

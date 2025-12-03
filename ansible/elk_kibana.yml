@@ -1,0 +1,55 @@
+- hosts: "{{ variable_hosts | default('elasticsearch-1') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  tasks:
+    - block:
+      - name: ELK-kibana | add repo
+        copy:
+          src: elk.list
+          dest: /etc/apt/sources.list.d/elk.list
+
+      - name: ELK-kibana | install kibana
+        apt:
+          name: [ 'kibana' ]
+          update_cache: yes
+          state: latest
+
+      - name: create dir certs
+        file:
+          path: "{{ item }}"
+          state: directory
+          owner: kibana
+          group: kibana
+          mode: "0770"
+        loop:
+          - /etc/kibana/certs
+
+      - name: copy ca certs for http
+        copy:
+          src: "certs_elk/{{ item }}"
+          dest: /etc/kibana/certs
+          owner: kibana
+          group: kibana
+          mode: "0440"
+        loop:
+          - "elastic-stack-ca.crt"
+        notify:
+          - restart kibana
+
+      - name: ELK-kibana | copy kibana config
+        template:
+          src: kibana.yml
+          dest: /etc/kibana/kibana.yml
+        notify:
+          - restart kibana
+
+      when: inventory_hostname == groups['elasticsearchs'][0]
+
+
+  handlers:
+    - name: restart kibana
+      systemd:
+        name: kibana
+        enabled: yes
+        daemon-reload: yes
+        state: restarted

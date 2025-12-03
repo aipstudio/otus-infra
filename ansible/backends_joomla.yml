@@ -9,13 +9,13 @@
         name: [ 'unzip' ]
         state: latest
 
-      - name: CMS-Joomla | owner to angie
-        file:
-          path: "/var/lib/php"
-          owner: root
-          group: angie
-          state: directory
-          recurse: yes
+    - name: CMS-Joomla | owner to angie
+      file:
+        path: "/var/lib/php"
+        owner: root
+        group: angie
+        state: directory
+        recurse: yes
 
     - block:
       - name: CMS-Joomla | chmod dir
