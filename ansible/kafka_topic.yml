@@ -1,0 +1,26 @@
+- hosts: "{{ variable_hosts | default('kafkas') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  tasks:
+    - block:
+      - name: KAFKA-topic | create topic
+        shell: |
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server "{{ ansible_default_ipv4.address }}:9092" -create --topic "frontend" --partitions 2 --replication-factor 2
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server "{{ ansible_default_ipv4.address }}:9092" -create --topic "backend" --partitions 2 --replication-factor 2
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server "{{ ansible_default_ipv4.address }}:9092" -create --topic "postgresql" --partitions 2 --replication-factor 2
+        ignore_errors: true
+        register: topic
+
+      - name: KAFKA-topic | show create topic result
+        debug:
+          msg: "{{ topic.stdout_lines }}"
+
+      - name: KAFKA-topic | get all topic
+        shell: /opt/kafka/bin/kafka-topics.sh --bootstrap-server "{{ ansible_default_ipv4.address }}:9092" --describe
+        register: topic_all
+
+      - name: KAFKA-topic | show all topic
+        debug:
+          msg: "{{ topic_all.stdout_lines }}"
+
+      when: inventory_hostname == groups['kafkas'][0]

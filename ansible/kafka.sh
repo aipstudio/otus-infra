@@ -10,3 +10,4 @@ export ANSIBLE_FORCE_COLOR=true
 
 ansible-playbook -i hosts_bastion kafka_data.yml $ARGS
 ansible-playbook -i hosts_bastion kafka.yml $ARGS
+ansible-playbook -i hosts_bastion kafka_topic.yml $ARGS

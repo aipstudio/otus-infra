@@ -6,6 +6,9 @@
       - 'frontend'
       - 'backend'
       - 'postgresql'
+      - 'frontendk'
+      - 'backendk'
+      - 'postgresqlk'
   tasks:
     - block:
       - name: ELK-elastic-configure | ILM | copy data scripts

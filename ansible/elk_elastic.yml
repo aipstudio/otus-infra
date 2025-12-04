@@ -30,9 +30,9 @@
         replace: "{{ item.replace }}"
       loop:
         - regexp: '^(.*-Xms.*)$'
-          replace: '-Xms1g'
+          replace: '-Xms512m'
         - regexp: '^(.*-Xmx.*)$'
-          replace: '-Xmx1g'
+          replace: '-Xmx512m'
 
     - name: ELK-elastic | copy elastic config
       template:

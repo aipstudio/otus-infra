@@ -20,13 +20,13 @@ variable "mysqls_count" {
 variable "postgresqls_count" {
   description = "Number of postgresqls"
   type        = number
-  default     = 2
+  default     = 0
 }
 
 variable "elasticsearchs_count" {
   description = "Number of elasticsearchs"
   type        = number
-  default     = 3
+  default     = 2
 }
 
 variable "kafkas_count" {

@@ -74,8 +74,9 @@
         - kafka-broker.service
         - kafka-controller.service
       notify:
-        - restart kafka-broker
         - restart kafka-controller
+        - sleep
+        - restart kafka-broker
 
     - name: KAFKA | copy config kafka
       template:
@@ -84,8 +85,10 @@
       loop:
         - controller.properties
         - broker.properties
+      #changed_when: true
       notify:
         - restart kafka-broker
+        - sleep
         - restart kafka-controller
 
     - name: KAFKA | enable service
@@ -94,9 +97,8 @@
         daemon-reload: yes
         enabled: yes
       loop:
-        - kafka-broker.service
         - kafka-controller.service
-
+        - kafka-broker.service
 
 
     - name: KAFKA | Get file status (controller storage)
@@ -138,6 +140,10 @@
         state: restarted
       loop:
         - kafka-controller.service
+
+    - name: sleep
+      pause:
+        seconds: 10
 
     - name: restart kafka-broker
       systemd:

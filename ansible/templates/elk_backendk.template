@@ -1,0 +1,17 @@
+{
+  "template": {
+    "settings": {
+      "index": {
+        "lifecycle": {
+          "name": "backendk"
+        },
+        "number_of_shards": "3",
+        "number_of_replicas": "1"
+      }
+    }
+  },
+  "index_patterns": [
+    "backendk-*"
+  ],
+  "composed_of": []
+}

@@ -1,5 +1,5 @@
 resource "yandex_compute_instance" "backends" {
-  depends_on = [resource.local_file.metadata]
+  depends_on = [resource.local_file.metadata, resource.yandex_compute_instance.storage]
   name        = "backend-${count.index + 1}"
   hostname    = "backend-${count.index + 1}"
   platform_id = "standard-v1"
