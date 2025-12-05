@@ -73,8 +73,11 @@
         group: root
       loop:
         - "logstash_frontend.conf"
+        - "logstash_frontendk.conf"
         - "logstash_backend.conf"
+        - "logstash_backendk.conf"
         - "logstash_postgresql.conf"
+        - "logstash_postgresqlk.conf"
       notify:
         - restart logstash
 

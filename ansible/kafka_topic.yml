@@ -5,9 +5,9 @@
     - block:
       - name: KAFKA-topic | create topic
         shell: |
-          /opt/kafka/bin/kafka-topics.sh --bootstrap-server "{{ ansible_default_ipv4.address }}:9092" -create --topic "frontend" --partitions 2 --replication-factor 2
-          /opt/kafka/bin/kafka-topics.sh --bootstrap-server "{{ ansible_default_ipv4.address }}:9092" -create --topic "backend" --partitions 2 --replication-factor 2
-          /opt/kafka/bin/kafka-topics.sh --bootstrap-server "{{ ansible_default_ipv4.address }}:9092" -create --topic "postgresql" --partitions 2 --replication-factor 2
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server "{{ ansible_default_ipv4.address }}:9092" -create --topic "frontendk" --partitions 2 --replication-factor 2
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server "{{ ansible_default_ipv4.address }}:9092" -create --topic "backendk" --partitions 2 --replication-factor 2
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server "{{ ansible_default_ipv4.address }}:9092" -create --topic "postgresqlk" --partitions 2 --replication-factor 2
         ignore_errors: true
         register: topic
 
@@ -23,4 +23,5 @@
         debug:
           msg: "{{ topic_all.stdout_lines }}"
 
-      when: inventory_hostname == groups['kafkas'][0]
+      when:
+        - inventory_hostname == groups['kafkas'][0]

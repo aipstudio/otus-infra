@@ -180,10 +180,10 @@ setup.kibana:
   #username: "elastic"
   #password: "changeme"
 
+{% if output == "logstash" %}
 # ------------------------------ Logstash Output -------------------------------
-output.logstash:
 {% if groups['elasticsearchs'] is defined and groups['elasticsearchs']|length>0 %}
-# The Logstash hosts
+output.logstash:
 {% if "frontend" in inventory_hostname %}
   hosts: [{% for elasticsearch in elasticsearchs %}"{{ elasticsearch.host }}:5040"{% if not loop.last %},{% endif %}{% endfor %}]
 {% elif "backend" in inventory_hostname %}
@@ -195,15 +195,25 @@ output.logstash:
   hosts: ["localhost:5000"]
 {% endif %}
 
-  # Optional SSL. By default is off.
-  # List of root certificates for HTTPS server verifications
-  #ssl.certificate_authorities: ["/etc/filebeat/certs/elastic-stack-ca.crt"]
+{% elif output == "kafka" %}
+# ------------------------------ Kafka Output ----------------------------------
+{% if groups['kafkas'] is defined and groups['kafkas']|length>0 %}
+output.kafka:
+  hosts: [{% for kafka in kafkas %}"{{ kafka.host }}:9092"{% if not loop.last %},{% endif %}{% endfor %}]
+  codec.json:
+    pretty: false
+{% if "frontend" in inventory_hostname %}
+  topic: "frontendk"
+{% elif "backend" in inventory_hostname %}
+  topic: "backendk"
+{% elif "postgresql" in inventory_hostname %}
+  topic: "postgresqlk"
+{% endif %}
+{% else %}
+  hosts: ["localhost:9092"]
+{% endif %}
 
-  # Certificate for SSL client authentication
-  #ssl.certificate: "/etc/pki/client/cert.pem"
-
-  # Client Certificate Key
-  #ssl.key: "/etc/pki/client/cert.key"
+{% endif %}
 
 # ================================= Processors =================================
 processors:

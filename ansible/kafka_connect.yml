@@ -1,0 +1,52 @@
+- hosts: "{{ variable_hosts | default('kafkas') }}"
+  remote_user: "{{ remote_user }}"
+  become: true
+  vars:
+    kafka_version: kafka_2.13-3.9.1
+  tasks:
+    - name: KAFKA-Connect | create dir /data
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: kafka
+        group: kafka
+      loop:
+        - /data/kafka-connect
+
+    - name: KAFKA-Connect | copy service kafka
+      template:
+        src: "{{ item }}"
+        dest: "/usr/lib/systemd/system/{{ item }}"
+      loop:
+        - kafka-connect.service
+      notify:
+        - restart kafka-connect
+
+    - name: KAFKA-Connect | copy config kafka
+      template:
+        src: "{{ item }}"
+        dest: "/opt/kafka/config/{{ item }}"
+      loop:
+        - connect-distributed.properties
+      changed_when: true
+      notify:
+        - restart kafka-connect
+
+    - name: KAFKA-Connect | enable service
+      systemd:
+        name: "{{ item }}"
+        daemon-reload: yes
+        enabled: yes
+      loop:
+        - kafka-connect.service
+
+
+  handlers:
+    - name: restart kafka-connect
+      systemd:
+        name: "{{ item }}"
+        daemon-reload: yes
+        enabled: yes
+        state: restarted
+      loop:
+        - kafka-connect.service

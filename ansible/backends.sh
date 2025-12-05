@@ -8,7 +8,7 @@ fi
 
 export ANSIBLE_FORCE_COLOR=true
 
-#ansible-playbook -i hosts_bastion backends_docker.yml $ARGS
+ansible-playbook -i hosts_bastion backends_docker.yml $ARGS
 ansible-playbook -i hosts_bastion backends_iscsi.yml $ARGS
 ansible-playbook -i hosts_bastion backends_multipath.yml $ARGS
 ansible-playbook -i hosts_bastion backends_pcs.yml $ARGS

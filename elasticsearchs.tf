@@ -9,7 +9,7 @@ resource "yandex_compute_instance" "elasticsearchs" {
   resources {
     cores         = 2
     memory        = 4
-    core_fraction = 20
+    core_fraction = 5
   }
 
   boot_disk {

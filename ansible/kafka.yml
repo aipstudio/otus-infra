@@ -85,7 +85,7 @@
       loop:
         - controller.properties
         - broker.properties
-      #changed_when: true
+      changed_when: true
       notify:
         - restart kafka-broker
         - sleep
@@ -134,12 +134,14 @@
   handlers:
     - name: restart kafka-controller
       systemd:
-        name: "{{ item }}"
+        name: kafka-controller.service
         daemon-reload: yes
         enabled: yes
         state: restarted
-      loop:
-        - kafka-controller.service
+      register: kafka_controller_service
+      until: kafka_controller_service.status.ActiveState == "active"
+      retries: 3
+      delay: 5
 
     - name: sleep
       pause:
@@ -147,9 +149,11 @@
 
     - name: restart kafka-broker
       systemd:
-        name: "{{ item }}"
+        name: kafka-broker.service
         daemon-reload: yes
         enabled: yes
         state: restarted
-      loop:
-        - kafka-broker.service
+      register: kafka_broker_service
+      until: kafka_broker_service.status.ActiveState == "active"
+      retries: 3
+      delay: 5

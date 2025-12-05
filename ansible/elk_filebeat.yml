@@ -1,6 +1,8 @@
 - hosts: "{{ variable_hosts | default('frontends,backends,postgresqls') }}"
   remote_user: "{{ remote_user }}"
   become: true
+  vars:
+    output: kafka
   tasks:
     - name: ELK-filebeat | add repo
       copy:

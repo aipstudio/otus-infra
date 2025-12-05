@@ -16,9 +16,9 @@
 
 Задание 12 - DCS etcd + patoni(pg-15) - load-balancer haproxy - only master (GET HTTP /read-write)
 
-Задание 14 - на серверах elasticsearch развернуты logstash а filebeat нацелены сразу на все logstash (5040 - front-access.log - angie, 5041 - back-access.log, 5050 - postgresql.log)
+Задание 14 - на серверах elasticsearch развернуты logstash а filebeat нацелены сразу на все logstash (5040 - front-access.log - angie, 5041 - back-access.log, 5050 - postgresql.log). Templates, ILM подгружаются в процессе разворачивания кластера.
 
-Templates, ILM подгружаются в процессе разворачивания кластера.
+Задание 16 - кластер kafka развернут на 3х нодах с использованием KRAFT, поднят kafka-connect - но не используется. Путь логов angie -> access.log -> filebeat -> kafka(topic) -> logstash -> elasticsearch. Вариант без kafka как же работает, только filebeat шлет данные сразу в logstash на слушающем порту. В logstash настроены все источники.
 
 ### Заметки
 
@@ -34,7 +34,9 @@ Templates, ILM подгружаются в процессе разворачив
 
 ${IP} = load_balancer_net_frontend
 
-http://$IP/wp-admin/install.php - первоначальная конфигурация CMS wordpress
+http://$IP/installation/index.php - первоначальная конфигурация CMS joomla
+
+http://$IP/kibana - просмотр логов (login/pass - {{ elk_user_elastic }}/{{ elk_pass_elastic }})
 
 http://$IP/ - фронт
 

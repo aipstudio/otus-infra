@@ -1,5 +1,5 @@
 [Unit]
-Description=Kafka Service broker
+Description=Kafka Service connect
 
 [Service]
 LimitNPROC=400000
@@ -9,9 +9,8 @@ Environment="KAFKA_HEAP_OPTS=-Xmx512m -Xms512m"
 Type=simple
 User=kafka
 Group=kafka
-ExecStart=/opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/kraft/broker.properties
-Restart=on-failure
-RestartSec=30s
+ExecStart=/opt/kafka/bin/connect-distributed.sh /opt/kafka/config/connect-distributed.properties
+Restart=on-abnormal
 
 [Install]
 WantedBy=multi-user.target
